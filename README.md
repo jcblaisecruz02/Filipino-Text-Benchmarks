@@ -3,6 +3,7 @@ Code and supplementary material for the paper "Establishing Baselines for Text C
 
 # Datasets
 Hate Speech Dataset [[link]](https://storage.googleapis.com/blaisecruz/datasets/hatenonhate/hatespeech_raw.zip)
+
 Dengue Dataset [[Link]](https://storage.googleapis.com/blaisecruz/datasets/dengue/dengue_raw.zip)
 
 # Pretrained Models
