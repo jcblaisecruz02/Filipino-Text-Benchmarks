@@ -2,9 +2,13 @@
 Code and supplementary material for the paper "Establishing Baselines for Text Classification in Low-Resource Languages"
 
 # Datasets
-Hate Speech Dataset [[link]](https://storage.googleapis.com/blaisecruz/datasets/hatenonhate/hatespeech_raw.zip)
+* **Hate Speech Dataset** [`download`](https://storage.googleapis.com/blaisecruz/datasets/hatenonhate/hatespeech_raw.zip)\
+*Text Classification Dataset in Filipino* \
+Contains 10k tweets (training set) that are labeled as hate speech or non-hate speech. Released with 4,232 validation and 4,232 testing samples. Collected during the 2016 Philippine Presidential Elections and originally used in Cabasag et al. (2019).
 
-Dengue Dataset [[Link]](https://storage.googleapis.com/blaisecruz/datasets/dengue/dengue_raw.zip)
+* **Dengue Dataset** [`download`](https://storage.googleapis.com/blaisecruz/datasets/dengue/dengue_raw.zip)\
+*Low-Resource Multiclass Text Classification Dataset in Filipino*\
+Benchmark dataset for low-resource multiclass classification, with 4,015 training, 500 testing, and 500 validation examples, each labeled as part of five classes. Each sample can be a part of multiple classes. Collected as tweets and originally used in Livelo & Cheng (2018).
 
 # Pretrained Models
 We release four Tagalog BERT Base models and one Tagalog DistilBERT Base model. All the models use the same configurations as the original English BERT models. Our models are available on HuggingFace Transformers and can be used on both PyTorch and Tensorflow.
