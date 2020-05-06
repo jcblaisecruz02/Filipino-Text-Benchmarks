@@ -1,7 +1,7 @@
 # Filipino-Text-Benchmarks
 This consolidated repository contains data and models from our two papers: 
-* Establishing Baselines for Text Classification in Low-Resource Languages (Cruz & Cheng, 2020)
-* Evaluating Language Model Finetuning Techniques for Low-resource Languages (Cruz & Cheng, 2019)
+* Establishing Baselines for Text Classification in Low-Resource Languages [(Cruz & Cheng, 2020)](https://arxiv.org/abs/2005.02068)
+* Evaluating Language Model Finetuning Techniques for Low-resource Languages [(Cruz & Cheng, 2019)](https://arxiv.org/abs/1907.00409)
 
 # Datasets
 * **WikiText-TL-39** [`download`](https://storage.googleapis.com/blaisecruz/datasets/wikitext-tl-39/wikitext-tl-39.zip)\
