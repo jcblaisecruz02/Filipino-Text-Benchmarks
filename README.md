@@ -50,7 +50,7 @@ If you found our work useful, please make sure to cite!
 @article{cruz2020establishing,
   title={Establishing Baselines for Text Classification in Low-Resource Languages},
   author={Cruz, Jan Christian Blaise and Cheng, Charibeth},
-  journal={arXiv preprint arXiv:},
+  journal={arXiv preprint arXiv:2005.02068},
   year={2020}
 }
 ```
