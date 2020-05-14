@@ -4,15 +4,15 @@ This consolidated repository contains data and models from our two papers:
 * Evaluating Language Model Finetuning Techniques for Low-resource Languages [(Cruz & Cheng, 2019)](https://arxiv.org/abs/1907.00409)
 
 # Datasets
-* **WikiText-TL-39** [`download`](https://storage.googleapis.com/blaisecruz/datasets/wikitext-tl-39/wikitext-tl-39.zip)\
+* **WikiText-TL-39** [`download`](https://s3.us-east-2.amazonaws.com/blaisecruz.com/datasets/wikitext-tl-39/wikitext-tl-39.zip)\
 *Large Scale Unlabeled Corpora in Filipino*\
 Large scale, unlabeled text dataset with 39 Million tokens in the training set. Inspired by the original [WikiText Long Term Dependency dataset](https://blog.einstein.ai/the-wikitext-long-term-dependency-language-modeling-dataset/) (Merity et al., 2016). TL means "Tagalog." Originally published in [Cruz & Cheng (2019)](https://arxiv.org/abs/1907.00409).
 
-* **Hate Speech Dataset** [`download`](https://storage.googleapis.com/blaisecruz/datasets/hatenonhate/hatespeech_raw.zip)\
+* **Hate Speech Dataset** [`download`](https://s3.us-east-2.amazonaws.com/blaisecruz.com/datasets/hatenonhate/hatespeech_raw.zip)\
 *Text Classification Dataset in Filipino* \
 Contains 10k tweets (training set) that are labeled as hate speech or non-hate speech. Released with 4,232 validation and 4,232 testing samples. Collected during the 2016 Philippine Presidential Elections and originally used in Cabasag et al. (2019).
 
-* **Dengue Dataset** [`download`](https://storage.googleapis.com/blaisecruz/datasets/dengue/dengue_raw.zip)\
+* **Dengue Dataset** [`download`](https://s3.us-east-2.amazonaws.com/blaisecruz.com/datasets/dengue/dengue_raw.zip)\
 *Low-Resource Multiclass Text Classification Dataset in Filipino*\
 Benchmark dataset for low-resource multiclass classification, with 4,015 training, 500 testing, and 500 validation examples, each labeled as part of five classes. Each sample can be a part of multiple classes. Collected as tweets and originally used in Livelo & Cheng (2018).
 
@@ -40,7 +40,7 @@ tokenizer = AutoTokenizer.from_pretrained('jcblaise/bert-tagalog-base-cased')
 ```
 
 # Other Pretrained Models
-* **ULMFiT-Tagalog** [`download`](https://storage.googleapis.com/blaisecruz/ulmfit-tagalog/models/pretrained-wikitext-tl-39.zip)\
+* **ULMFiT-Tagalog** [`download`](https://s3.us-east-2.amazonaws.com/blaisecruz.com/ulmfit-tagalog/models/pretrained-wikitext-tl-39.zip)\
 Tagalog pretrained AWD-LSTM compatible with the FastAI library. Originally published in [Cruz & Cheng (2019)](https://arxiv.org/abs/1907.00409).
 
 # Citations
