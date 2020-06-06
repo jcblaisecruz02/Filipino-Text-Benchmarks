@@ -132,6 +132,11 @@ def finetune(args):
         for e in range(1, args.epochs + 1):
             train_loss, train_acc = train(model, criterion, optimizer, train_loader, scheduler=scheduler, accumulation=args.accumulation, device=device)
             valid_loss, valid_acc = evaluate(model, criterion, valid_loader, device=device)
+            
+            # Pruning (hyperparam opt)
+            if args.optimize_hyperparameters:
+                trial.report(valid_acc, step)
+                if trial.should_prune(): raise optuna.TrialPruned()
 
             print("Epoch {:3} | Train Loss {:.4f} | Train Acc {:.4f} | Valid Loss {:.4f} | Valid Acc {:.4f}".format(e, train_loss, train_acc, valid_loss, valid_acc))
 
@@ -142,7 +147,11 @@ def finetune(args):
     # Use hyperparameter search
     if args.optimize_hyperparameters:
         import optuna
-        study = optuna.create_study(direction='maximize')
+        study = optuna.create_study(pruner=optuna.pruners.MedianPruner(), 
+                                    direction='maximize', 
+                                    study_name=args.study_name, 
+                                    storage='sqlite:///' + args.study_name, 
+                                    load_if_exists=True)
         study.optimize(objective, n_trials=args.opt_n_trials)
 
         pruned_trials = [t for t in study.trials if t.state == optuna.trial.TrialState.PRUNED]
@@ -188,6 +197,7 @@ def main():
     parser.add_argument('--no_cuda', action='store_true')
     parser.add_argument('--optimize_hyperparameters', action='store_true')
     parser.add_argument('--opt_n_trials', type=int, default=100)
+    parser.add_argument('--study_name', type=str, default='my_study')
     parser.add_argument('--optimize_seed', action='store_true')
     parser.add_argument('--opt_seed_lowerbound', type=int, default=1)
     parser.add_argument('--opt_seed_upperbound', type=int, default=99)
