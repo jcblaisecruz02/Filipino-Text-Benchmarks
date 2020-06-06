@@ -16,41 +16,76 @@ This consolidated repository contains data and models from our two papers:
 # Reproducing Results
 To finetune the models to a text classification dataset, you may use the provided ```train.py``` script. Make sure to remove the ```--lowercase``` flag when using cased models. To fit larger batch sizes on smaller GPUs, set the ```--accumulation``` argument to use gradient accumulation. Please see the script for a full list of command line arguments.
 
-Here's an example that finetunes a small uncased ELECTRA model on the Hatespeech dataset.
+Here's an example that finetunes a small cased ELECTRA model on the Hatespeech dataset.
 
 ```
 python train.py \
-    --pretrained jcblaise/electra-tagalog-small-uncased-discriminator \
+    --pretrained jcblaise/electra-tagalog-small-cased-discriminator \
     --train_data hatespeech/train.csv \
     --valid_data hatespeech/valid.csv \
-    --lowercase \
+    --test_data hatespeech/test.csv \
+    --checkpoint model.pt \
+    --do_train \
+    --do_eval \
     --data_pct 1.0 \
     --msl 128 \
     --batch_size 32 \
-    --accumulation 1 \
     --add_token [LINK] \
     --add_token [HASHTAG] \
     --add_token [MENTION] \
-    --weight_decay 0.0 \
-    --learning_rate 5e-5 \
+    --weight_decay 8e-7 \
+    --learning_rate 9e-5 \
     --adam_epsilon 1e-6 \
     --use_scheduler \
     --warmup_pct 0.1 \
     --epochs 3 \
-    --seed 42
+    --seed 8139
 ```
+
+Running this setup should give you a validation accuracy of 0.7620 and a testing accuracy of 0.7500.
+
+The ```--label_column``` argument specifies the names of the columns that are considered targets (set to "label" by default). It can also take a comma-separated list of label columns to perform multilabel classification. Here's an example that finetunes a small ELECTRA model on the Dengue dataset.
+
+```
+python train.py \
+    --pretrained jcblaise/electra-tagalog-small-cased-discriminator \
+    --train_data dengue/train.csv \
+    --valid_data dengue/valid.csv \
+    --test_data dengue/test.csv \
+    --label_column absent,dengue,health,mosquito,sick \
+    --checkpoint model.pt \
+    --do_train \
+    --do_eval \
+    --data_pct 1.0 \
+    --msl 128 \
+    --batch_size 32 \
+    --add_token [LINK] \
+    --add_token [HASHTAG] \
+    --add_token [MENTION] \
+    --weight_decay 8e-7 \
+    --learning_rate 9e-5 \
+    --adam_epsilon 1e-6 \
+    --use_scheduler \
+    --warmup_pct 0.1 \
+    --epochs 3 \
+    --seed 8139
+```
+
+This setup should yield a validation accuracy of 0.8313 and a test accuracy of 0.8553.
 
 # Hyperparameter Search
-You can perform hyperparameter search via Optuna using the same script. Toggle the ```--optimize_hyperparameters``` argument to use hyperparameter search. Searching for random seed (```---optimize_seed```), learning rate (```---optimize_learning_rate```), and weight decay (```---optimize_weight_decay```) are available out of the box.
+You can perform hyperparameter search via Optuna using the same script. Toggle the ```--optimize_hyperparameters``` argument to use hyperparameter search. Searching for random seed (```---optimize_seed```), learning rate (```---optimize_learning_rate```), and weight decay (```---optimize_weight_decay```) are available out of the box. You can also toggle ```---dont_save``` to forego checkpoint saving to save on time and operations during long runs.
 
-Here's a sample search for random seed run for 100 trials.
+Here's a sample search for random seed run for 100 trials using an uncased ELECTRA model (don't forget to toggle ```--lowercase``` when using uncased models!)
 
 ```
 python train.py \
     --pretrained jcblaise/electra-tagalog-small-uncased-discriminator \
+    --lowercase \
     --train_data hatespeech/train.csv \
     --valid_data hatespeech/valid.csv \
-    --lowercase \
+    --do_train \
+    --dont_save \
     --data_pct 1.0 \
     --msl 128 \
     --batch_size 32 \
@@ -58,13 +93,15 @@ python train.py \
     --add_token [LINK] \
     --add_token [HASHTAG] \
     --add_token [MENTION] \
-    --weight_decay 0.0 \
-    --learning_rate 5e-5 \
+    --weight_decay 8e-7 \
+    --learning_rate 9e-5 \
     --adam_epsilon 1e-6 \
     --use_scheduler \
     --warmup_pct 0.1 \
     --epochs 3 \
+    --seed 42 \
     --optimize_hyperparameters \
+    --study_name seed_search \
     --opt_n_trials 100 \
     --optimize_seed \
     --opt_seed_lowerbound 1 \
