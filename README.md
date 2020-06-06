@@ -6,8 +6,15 @@ This consolidated repository contains data and models from our two papers:
 * Establishing Baselines for Text Classification in Low-Resource Languages [(Cruz & Cheng, 2020)](https://arxiv.org/abs/2005.02068)
 * Evaluating Language Model Finetuning Techniques for Low-resource Languages [(Cruz & Cheng, 2019)](https://arxiv.org/abs/1907.00409)
 
+# Requirements
+* PyTorch v1
+* Transformers
+* Optuna (optional, for hyperparameter search)
+* tqdm
+* NVIDIA GPU (all experiments were done on Tesla P100 GPUs)
+
 # Reproducing Results
-To finetune the models to a text classification dataset, you may use the provided ```train.py``` script. Make sure to remove the ```--lowercase``` flag when using cased models.
+To finetune the models to a text classification dataset, you may use the provided ```train.py``` script. Make sure to remove the ```--lowercase``` flag when using cased models. To fit larger batch sizes on smaller GPUs, set the ```--accumulation``` argument to use gradient accumulation. Please see the script for a full list of command line arguments.
 
 Here's an example that finetunes a small uncased ELECTRA model on the Hatespeech dataset.
 
