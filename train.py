@@ -124,7 +124,7 @@ def finetune(args):
             scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=int(steps * args.warmup_pct), num_training_steps=steps)
         else: scheduler = None
 
-        print("Using learning rate {} and weight decay {}".format(lr, wd), end='')
+        print("Using learning rate {:.4E} and weight decay {:.4E}".format(lr, wd), end='')
         print(" with scheduler using warmup pct {}".format(args.warmup_pct)) if args.use_scheduler else print("")
 
         # Train
@@ -135,7 +135,7 @@ def finetune(args):
             
             # Pruning (hyperparam opt)
             if args.optimize_hyperparameters:
-                trial.report(valid_acc, step)
+                trial.report(valid_acc, e)
                 if trial.should_prune(): raise optuna.TrialPruned()
 
             print("Epoch {:3} | Train Loss {:.4f} | Train Acc {:.4f} | Valid Loss {:.4f} | Valid Acc {:.4f}".format(e, train_loss, train_acc, valid_loss, valid_acc))
@@ -167,7 +167,8 @@ def finetune(args):
         print("  Validation Accuracy : {:.4f}".format(trial.value))
         print("  Params: ")
         for key, value in trial.params.items():
-            print("    {}: {}".format(key, value))
+            if key in ['learning_rate', 'weight_decay']: print("    {}: {:.4E}".format(key, value))
+            else: print("    {}: {}".format(key, value))
     
     # Run standard finetuning without hyperparameter search
     else:
@@ -203,7 +204,7 @@ def main():
     parser.add_argument('--opt_seed_upperbound', type=int, default=99)
     parser.add_argument('--optimize_learning_rate', action='store_true')
     parser.add_argument('--opt_lr_lowerbound', type=float, default=1e-5)
-    parser.add_argument('--opt_lr_upperbound', type=float, default=1e-3)
+    parser.add_argument('--opt_lr_upperbound', type=float, default=5e-4)
     parser.add_argument('--optimize_weight_decay', action='store_true')
     parser.add_argument('--opt_wd_lowerbound', type=float, default=1e-8)
     parser.add_argument('--opt_wd_upperbound', type=float, default=1e-3)
