@@ -17,6 +17,7 @@ parser.add_argument('--label_column', type=str, default='label')
 parser.add_argument('--lowercase', action='store_true')
 parser.add_argument('--msl', type=int, default=128)
 parser.add_argument('--batch_size', type=int, default=32)
+parser.add_argument('--accumulation', type=int, default=1)
 parser.add_argument('--add_token', action='append')
 parser.add_argument('--random_init', action='store_true')
 parser.add_argument('--weight_decay', type=float, default=0.0)
@@ -80,9 +81,10 @@ optimizer_grouped_parameters = [{"params": [p for n, p in model.named_parameters
                                 {"params": [p for n, p in model.named_parameters() if any(nd in n for nd in no_decay)], 
                                  "weight_decay": 0.0}]
 optimizer = AdamW(optimizer_grouped_parameters, lr=args.learning_rate, eps=args.adam_epsilon)
+optimizer.zero_grad()
 
 if args.use_scheduler:
-    steps = len(train_loader) * args.epochs
+    steps = len(train_loader) * args.epochs // args.accumulation
     scheduler = get_linear_schedule_with_warmup(optimizer, num_warmup_steps=int(steps * args.warmup_pct), num_training_steps=steps)
 else: scheduler = None
 
@@ -91,15 +93,16 @@ print("Begin training.")
 for e in range(1, args.epochs + 1):
     model.train()
     train_loss, train_acc = 0, 0
-    for x, y in tqdm(train_loader):
+    for i, (x, y) in enumerate(tqdm(train_loader)):
         x, y = x.to(device), y.to(device)
         out = model(x)[0]
         loss = criterion(out, y)
+        loss.backward() 
 
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-        if scheduler is not None: scheduler.step()
+        if (i + 1) % args.accumulation == 0: 
+            optimizer.step()
+            optimizer.zero_grad()
+            if scheduler is not None: scheduler.step()
 
         train_loss += loss.item()
         train_acc += accuracy(out, y)
