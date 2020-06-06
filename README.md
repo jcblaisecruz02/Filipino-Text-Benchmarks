@@ -1,7 +1,68 @@
 # Filipino-Text-Benchmarks
+
+*This repository is a work in progress!*
+
 This consolidated repository contains data and models from our two papers: 
 * Establishing Baselines for Text Classification in Low-Resource Languages [(Cruz & Cheng, 2020)](https://arxiv.org/abs/2005.02068)
 * Evaluating Language Model Finetuning Techniques for Low-resource Languages [(Cruz & Cheng, 2019)](https://arxiv.org/abs/1907.00409)
+
+# Reproducing Results
+To finetune the models to a text classification dataset, you may use the provided ```train.py``` script. Make sure to remove the ```--lowercase``` flag when using cased models.
+
+Here's an example that finetunes a small uncased ELECTRA model on the Hatespeech dataset.
+
+```
+python train.py \
+    --pretrained jcblaise/electra-tagalog-small-uncased-discriminator \
+    --train_data hatespeech/train.csv \
+    --valid_data hatespeech/valid.csv \
+    --lowercase \
+    --data_pct 1.0 \
+    --msl 128 \
+    --batch_size 32 \
+    --accumulation 1 \
+    --add_token [LINK] \
+    --add_token [HASHTAG] \
+    --add_token [MENTION] \
+    --weight_decay 0.0 \
+    --learning_rate 5e-5 \
+    --adam_epsilon 1e-6 \
+    --use_scheduler \
+    --warmup_pct 0.1 \
+    --epochs 3 \
+    --seed 42
+```
+
+# Hyperparameter Search
+You can perform hyperparameter search via Optuna using the same script. Toggle the ```--optimize_hyperparameters``` argument to use hyperparameter search. Searching for random seed (```---optimize_seed```), learning rate (```---optimize_learning_rate```), and weight decay (```---optimize_weight_decay```) are available out of the box.
+
+Here's a sample search for random seed run for 100 trials.
+
+```
+python train.py \
+    --pretrained jcblaise/electra-tagalog-small-uncased-discriminator \
+    --train_data hatespeech/train.csv \
+    --valid_data hatespeech/valid.csv \
+    --lowercase \
+    --data_pct 1.0 \
+    --msl 128 \
+    --batch_size 32 \
+    --accumulation 1 \
+    --add_token [LINK] \
+    --add_token [HASHTAG] \
+    --add_token [MENTION] \
+    --weight_decay 0.0 \
+    --learning_rate 5e-5 \
+    --adam_epsilon 1e-6 \
+    --use_scheduler \
+    --warmup_pct 0.1 \
+    --epochs 3 \
+    --optimize_hyperparameters \
+    --opt_n_trials 100 \
+    --optimize_seed \
+    --opt_seed_lowerbound 1 \
+    --opt_seed_upperbound 9999
+```
 
 # Datasets
 * **WikiText-TL-39** [`download`](https://s3.us-east-2.amazonaws.com/blaisecruz.com/datasets/wikitext-tl-39/wikitext-tl-39.zip)\
@@ -15,6 +76,37 @@ Contains 10k tweets (training set) that are labeled as hate speech or non-hate s
 * **Dengue Dataset** [`download`](https://s3.us-east-2.amazonaws.com/blaisecruz.com/datasets/dengue/dengue_raw.zip)\
 *Low-Resource Multiclass Text Classification Dataset in Filipino*\
 Benchmark dataset for low-resource multiclass classification, with 4,015 training, 500 testing, and 500 validation examples, each labeled as part of five classes. Each sample can be a part of multiple classes. Collected as tweets and originally used in Livelo & Cheng (2018).
+
+# Pretrained ELECTRA Models
+We release new ELECTRA models in small and base configurations, with both the discriminator and generators available. All the models follow the same setups and were trained with the same hyperparameters as English ELECTRA models. Our models are available on HuggingFace Transformers and can be used on both PyTorch and Tensorflow.
+
+**Discriminator Models**
+
+* ELECTRA Base Cased Discriminator - [`jcblaise/electra-tagalog-base-cased-discriminator`](https://huggingface.co/jcblaise/electra-tagalog-base-cased-discriminator) 
+* ELECTRA Base Uncased Discriminator - [`jcblaise/electra-tagalog-base-uncased-discriminator`](https://huggingface.co/jcblaise/electra-tagalog-base-uncased-discriminator) 
+* ELECTRA Small Cased Discriminator - [`jcblaise/electra-tagalog-small-cased-discriminator`](https://huggingface.co/jcblaise/electra-tagalog-small-cased-discriminator) 
+* ELECTRA Small Uncased Discriminator - [`jcblaise/electra-tagalog-small-uncased-discriminator`](https://huggingface.co/jcblaise/electra-tagalog-small-uncased-discriminator)
+
+**Generator Models**
+
+* ELECTRA Base Cased Generator - [`jcblaise/electra-tagalog-base-cased-generator`](https://huggingface.co/jcblaise/electra-tagalog-base-cased-generator) 
+* ELECTRA Base Uncased Generator - [`jcblaise/electra-tagalog-base-uncased-generator`](https://huggingface.co/jcblaise/electra-tagalog-base-uncased-generator) 
+* ELECTRA Small Cased Generator - [`jcblaise/electra-tagalog-small-cased-generator`](https://huggingface.co/jcblaise/electra-tagalog-small-cased-generator)
+* ELECTRA Small Uncased Generator - [`jcblaise/electra-tagalog-small-uncased-generator`](https://huggingface.co/jcblaise/electra-tagalog-small-uncased-generator)
+
+The models can be loaded using the code below:
+
+```Python
+from transformers import TFAutoModel, AutoModel, AutoTokenizer
+
+# TensorFlow
+model = TFAutoModel.from_pretrained('jcblaise/electra-tagalog-small-cased-generator', from_pt=True)
+tokenizer = AutoTokenizer.from_pretrained('jcblaise/electra-tagalog-small-cased-generator', do_lower_case=False)
+
+# PyTorch
+model = AutoModel.from_pretrained('jcblaise/electra-tagalog-small-cased-generator')
+tokenizer = AutoTokenizer.from_pretrained('jcblaise/electra-tagalog-small-cased-generator', do_lower_case=False)
+```
 
 # Pretrained BERT Models
 We release four Tagalog BERT Base models and one Tagalog DistilBERT Base model. All the models use the same configurations as the original English BERT models. Our models are available on HuggingFace Transformers and can be used on both PyTorch and Tensorflow.
@@ -32,11 +124,11 @@ from transformers import TFAutoModel, AutoModel, AutoTokenizer
 
 # TensorFlow
 model = TFAutoModel.from_pretrained('jcblaise/bert-tagalog-base-cased', from_pt=True)
-tokenizer = AutoTokenizer.from_pretrained('jcblaise/bert-tagalog-base-cased')
+tokenizer = AutoTokenizer.from_pretrained('jcblaise/bert-tagalog-base-cased', do_lower_case=False)
 
 # PyTorch
 model = AutoModel.from_pretrained('jcblaise/bert-tagalog-base-cased')
-tokenizer = AutoTokenizer.from_pretrained('jcblaise/bert-tagalog-base-cased')
+tokenizer = AutoTokenizer.from_pretrained('jcblaise/bert-tagalog-base-cased', do_lower_case=False)
 ```
 
 # Other Pretrained Models
