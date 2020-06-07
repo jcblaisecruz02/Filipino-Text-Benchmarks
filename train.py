@@ -167,7 +167,7 @@ def finetune(args):
                 valid_loss, valid_acc = evaluate(model, criterion, valid_loader, device=device)
                 
                 # Pruning (hyperparam opt)
-                if args.optimize_hyperparameters:
+                if args.optimize_hyperparameters and args.opt_use_pruning:
                     trial.report(valid_acc, e)
                     if trial.should_prune(): raise optuna.TrialPruned()
 
@@ -296,6 +296,7 @@ def main():
     
     # Hyperparameter optimization arguments
     parser.add_argument('--optimize_hyperparameters', action='store_true', help='Toggle to use hyperparameter optimization.')
+    parser.add_argument('--opt_use_pruning', action='store_true', help='Prune unpromising runs.')
     parser.add_argument('--opt_n_trials', type=int, default=100, help='Number of trials to run hyperparameter optimization.')
     parser.add_argument('--study_name', type=str, default='my_study', help='Name of generated output database for hyperparameter optimization.')
     parser.add_argument('--optimize_seed', action='store_true', help='Toggle to optimize the seed.')
