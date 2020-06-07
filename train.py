@@ -69,6 +69,20 @@ def finetune(args):
         print("Using random seed", seed)
         torch.manual_seed(seed)
 
+        # Weights and Biases init
+        if args.use_wandb:
+            import wandb
+            wandb.init(entity=args.wandb_username ,project=args.wandb_project_name)
+            config = wandb.config
+            config.seed = seed
+            config.batch_size = args.batch_size
+            config.accumulation = args.accumulation
+            config.pretrained_model = args.pretrained
+            config.data_pct = args.data_pct
+            config.use_scheduler = args.use_scheduler
+            config.warmup_pct = args.warmup_pct
+            config.lowercase = args.lowercase
+
         # Initialize Tokenizer
         tokenizer = AutoTokenizer.from_pretrained(args.pretrained, model_max_length=args.msl, do_lower_case=args.lowercase)
         add_token = {'additional_special_tokens': args.add_token}
@@ -123,6 +137,11 @@ def finetune(args):
                 wd = trial.suggest_loguniform('weight_decay', args.opt_wd_lowerbound, args.opt_wd_upperbound)
             else: 
                 wd = args.weight_decay
+
+            if args.use_wandb:
+                config.weight_decay = wd
+                config.learning_rate = lr
+                wandb.watch(model, log="all")
             
             criterion = torch.nn.CrossEntropyLoss() if num_labels == 1 else torch.nn.BCEWithLogitsLoss()
             no_decay = ["bias", "LayerNorm.weight"]
@@ -153,6 +172,13 @@ def finetune(args):
                     if trial.should_prune(): raise optuna.TrialPruned()
 
                 print("Epoch {:3} | Train Loss {:.4f} | Train Acc {:.4f} | Valid Loss {:.4f} | Valid Acc {:.4f}".format(e, train_loss, train_acc, valid_loss, valid_acc))
+
+            if args.use_wandb:
+                wandb.log({
+                    "Train Loss": train_loss,
+                    "Train Accuracy": train_acc,
+                    "Validation Loss": valid_loss,
+                    "Validation Accuracy": valid_acc})
 
             # Save the checkpoint
             if not args.dont_save:
@@ -190,6 +216,9 @@ def finetune(args):
             # Test
             test_loss, test_acc = evaluate(model, criterion, test_loader, device=device)
             print("Test Loss {:.4f} | Test Accuracy {:.4f}".format(test_loss, test_acc))
+
+            if args.use_wandb:
+                wandb.log({"Test Loss": test_loss, "Test Accuracy": test_acc})
 
             # Prevent errors from not training
             if not args.do_train: valid_acc = 0
@@ -261,6 +290,9 @@ def main():
     parser.add_argument('--seed', type=int, default=42, help='Random seed.')
     parser.add_argument('--no_cuda', action='store_true', help='Do not use the GPU.')
     parser.add_argument('--dont_save', action='store_true', help='Do not save the finetuned checkpoint.')
+    parser.add_argument('--use_wandb', action='store_true', help='Log experiment results in Weights and Biases.')
+    parser.add_argument('--wandb_project_name', type=str, help='Name of project in Weight and Biases.')
+    parser.add_argument('--wandb_username', type=str, help='Username in Weight and Biases.')
     
     # Hyperparameter optimization arguments
     parser.add_argument('--optimize_hyperparameters', action='store_true', help='Toggle to use hyperparameter optimization.')
