@@ -68,21 +68,7 @@ def finetune(args):
             seed = args.seed
         print("Using random seed", seed)
         torch.manual_seed(seed)
-
-        # Weights and Biases init
-        if args.use_wandb:
-            import wandb
-            wandb.init(entity=args.wandb_username ,project=args.wandb_project_name)
-            config = wandb.config
-            config.seed = seed
-            config.batch_size = args.batch_size
-            config.accumulation = args.accumulation
-            config.pretrained_model = args.pretrained
-            config.data_pct = args.data_pct
-            config.use_scheduler = args.use_scheduler
-            config.warmup_pct = args.warmup_pct
-            config.lowercase = args.lowercase
-
+        
         # Initialize Tokenizer
         tokenizer = AutoTokenizer.from_pretrained(args.pretrained, model_max_length=args.msl, do_lower_case=args.lowercase)
         add_token = {'additional_special_tokens': args.add_token}
@@ -139,6 +125,17 @@ def finetune(args):
                 wd = args.weight_decay
 
             if args.use_wandb:
+                import wandb
+                wandb.init(entity=args.wandb_username ,project=args.wandb_project_name, reinit=True if args.optimize_hyperparameters else False)
+                config = wandb.config
+                config.seed = seed
+                config.batch_size = args.batch_size
+                config.accumulation = args.accumulation
+                config.pretrained_model = args.pretrained
+                config.data_pct = args.data_pct
+                config.use_scheduler = args.use_scheduler
+                config.warmup_pct = args.warmup_pct
+                config.lowercase = args.lowercase
                 config.weight_decay = wd
                 config.learning_rate = lr
                 wandb.watch(model, log="all")
