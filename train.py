@@ -60,12 +60,38 @@ def finetune(args):
     # Wrap the finetuning function in an objective to support
     # Hyperparameter search using Optuna
     def objective(trial):
-        # Preliminaries
-        print("\n===== BEGIN FINETUNING =====\n")
+        # Suggest hyperparameters
+        if args.optimize_learning_rate: 
+                lr = trial.suggest_loguniform('learning_rate', args.opt_lr_lowerbound, args.opt_lr_upperbound)
+        else: 
+            lr = args.learning_rate
+        if args.optimize_weight_decay: 
+            wd = trial.suggest_loguniform('weight_decay', args.opt_wd_lowerbound, args.opt_wd_upperbound)
+        else: 
+            wd = args.weight_decay
         if args.optimize_seed: 
             seed = trial.suggest_int('seed', args.opt_seed_lowerbound, args.opt_seed_upperbound)
         else: 
             seed = args.seed
+
+        if args.use_wandb:
+            import wandb
+            wandb.init(entity=args.wandb_username ,project=args.wandb_project_name, reinit=True if args.optimize_hyperparameters else False)
+            config = wandb.config
+            config.seed = seed
+            config.batch_size = args.batch_size
+            config.accumulation = args.accumulation
+            config.pretrained_model = args.pretrained
+            config.data_pct = args.data_pct
+            config.use_scheduler = args.use_scheduler
+            config.warmup_pct = args.warmup_pct
+            config.lowercase = args.lowercase
+            config.weight_decay = wd
+            config.learning_rate = lr
+            wandb.save(args.study_name)
+
+        # Preliminaries
+        print("\n===== BEGIN FINETUNING =====\n")
         print("Using random seed", seed)
         torch.manual_seed(seed)
         
@@ -115,31 +141,6 @@ def finetune(args):
             print("Model has {:,} trainable parameters".format(sum(p.numel() for p in model.parameters() if p.requires_grad)))
 
             # Initialize loss, optimizer, and scheduler
-            if args.optimize_learning_rate: 
-                lr = trial.suggest_loguniform('learning_rate', args.opt_lr_lowerbound, args.opt_lr_upperbound)
-            else: 
-                lr = args.learning_rate
-            if args.optimize_weight_decay: 
-                wd = trial.suggest_loguniform('weight_decay', args.opt_wd_lowerbound, args.opt_wd_upperbound)
-            else: 
-                wd = args.weight_decay
-
-            if args.use_wandb:
-                import wandb
-                wandb.init(entity=args.wandb_username ,project=args.wandb_project_name, reinit=True if args.optimize_hyperparameters else False)
-                config = wandb.config
-                config.seed = seed
-                config.batch_size = args.batch_size
-                config.accumulation = args.accumulation
-                config.pretrained_model = args.pretrained
-                config.data_pct = args.data_pct
-                config.use_scheduler = args.use_scheduler
-                config.warmup_pct = args.warmup_pct
-                config.lowercase = args.lowercase
-                config.weight_decay = wd
-                config.learning_rate = lr
-                wandb.watch(model, log="all")
-            
             criterion = torch.nn.CrossEntropyLoss() if num_labels == 1 else torch.nn.BCEWithLogitsLoss()
             no_decay = ["bias", "LayerNorm.weight"]
             optimizer_grouped_parameters = [{"params": [p for n, p in model.named_parameters() if not any(nd in n for nd in no_decay)], 
@@ -157,6 +158,9 @@ def finetune(args):
             print("Using learning rate {:.4E} and weight decay {:.4E}".format(lr, wd), end='')
             print(" with scheduler using warmup pct {}".format(args.warmup_pct)) if args.use_scheduler else print("")
 
+            if args.use_wandb:
+                wandb.watch(model, log="all")
+
             # Train
             print("\nBegin training.")
             for e in range(1, args.epochs + 1):
@@ -170,12 +174,12 @@ def finetune(args):
 
                 print("Epoch {:3} | Train Loss {:.4f} | Train Acc {:.4f} | Valid Loss {:.4f} | Valid Acc {:.4f}".format(e, train_loss, train_acc, valid_loss, valid_acc))
 
-            if args.use_wandb:
-                wandb.log({
-                    "Train Loss": train_loss,
-                    "Train Accuracy": train_acc,
-                    "Validation Loss": valid_loss,
-                    "Validation Accuracy": valid_acc})
+                if args.use_wandb:
+                    wandb.log({
+                        "Train Loss": train_loss,
+                        "Train Accuracy": train_acc,
+                        "Validation Loss": valid_loss,
+                        "Validation Accuracy": valid_acc})
 
             # Save the checkpoint
             if not args.dont_save:
