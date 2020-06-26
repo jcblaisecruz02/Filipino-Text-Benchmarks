@@ -88,6 +88,7 @@ def finetune(args):
             config.lowercase = args.lowercase
             config.weight_decay = wd
             config.learning_rate = lr
+            config.random_init = args.random_init
             wandb.save(args.study_name)
 
         # Preliminaries
@@ -110,6 +111,7 @@ def finetune(args):
         if args.do_train:
             # Load datasets
             print("Loading and tokenizing dataset")
+            print("Using {:.2f} of the training set.".format(args.data_pct))
             df = pd.read_csv(args.train_data).sample(frac=args.data_pct, random_state=seed)
             X_train = torch.tensor(np.array([tokenize(t, tokenizer, msl=args.msl) for t in tqdm(df[args.text_column])]))
             y_train = torch.tensor(df[columns].values)
