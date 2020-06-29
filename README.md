@@ -13,7 +13,7 @@ This consolidated repository contains data and models from our two papers:
 * tqdm
 * NVIDIA GPU (all experiments were done on Tesla P100 GPUs)
 
-# Reproducing Results
+# Reproducing Classification Results
 To finetune the models to a text classification dataset, you may use the provided ```train.py``` script. Make sure to remove the ```--lowercase``` flag when using cased models. To fit larger batch sizes on smaller GPUs, set the ```--accumulation``` argument to use gradient accumulation. Please see the script for a full list of command line arguments.
 
 Here's an example that finetunes a small cased ELECTRA model on the Hatespeech dataset.
@@ -72,6 +72,9 @@ python train.py \
 ```
 
 This setup should yield a validation accuracy of 0.8313 and a test accuracy of 0.8553.
+
+# Reproducing Sentence Entailment Results
+*Coming soon*
 
 # Hyperparameter Search
 You can perform hyperparameter search via Optuna using the same script. Toggle the ```--optimize_hyperparameters``` argument to use hyperparameter search. Searching for random seed (```---optimize_seed```), learning rate (```---optimize_learning_rate```), and weight decay (```---optimize_weight_decay```) are available out of the box. You can also toggle ```---dont_save``` to forego checkpoint saving to save on time and operations during long runs.
