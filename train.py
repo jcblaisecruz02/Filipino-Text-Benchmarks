@@ -6,6 +6,27 @@ from transformers import AdamW, get_linear_schedule_with_warmup
 import pandas as pd
 import numpy as np
 from tqdm import tqdm
+import hashlib
+import os
+
+# Processing for entailment tasks
+def process_data(df, tokenizer, msl=128, s1_column='s1', s2_column='s2', label_column='label'):
+    # Read data
+    s1, s2 = list(df[s1_column]), list(df[s2_column])
+
+    # Process Labels
+    label_list = list(df[label_column])
+    labels = list(set(label_list))
+    label_list = [labels.index(l) for l in label_list]
+
+    # Tokenize
+    ids = [tokenizer.encode(s1[i], s2[i], 
+                            padding='max_length', 
+                            max_length=msl, 
+                            truncation='longest_first') 
+        for i in tqdm(range(len(s1)))]
+
+    return torch.tensor(ids), torch.tensor(label_list)
 
 def tokenize(t, tokenizer, msl): 
     return tokenizer.encode(t, pad_to_max_length=True, max_length=msl)
@@ -107,20 +128,48 @@ def finetune(args):
         num_labels = len(columns)
         if num_labels == 1: columns = columns[0]
 
+        # Set the text columns
+        text_columns = (args.text_column).split(',')
+        num_texts = len(text_columns)
+
         # Training proper
         if args.do_train:
-            # Load datasets
-            print("Loading and tokenizing dataset")
-            print("Using {:.2f} of the training set.".format(args.data_pct))
-            df = pd.read_csv(args.train_data).sample(frac=args.data_pct, random_state=seed)
-            X_train = torch.tensor(np.array([tokenize(t, tokenizer, msl=args.msl) for t in tqdm(df[args.text_column])]))
-            y_train = torch.tensor(df[columns].values)
-            if num_labels > 1: y_train = y_train.float()
-            
-            df = pd.read_csv(args.valid_data).sample(frac=1.0, random_state=seed)
-            X_valid = torch.tensor(np.array([tokenize(t, tokenizer, msl=args.msl) for t in tqdm(df[args.text_column])]))
-            y_valid = torch.tensor(df[columns].values)
-            if num_labels > 1: y_valid = y_valid.float()
+            # Identify hash for the datset + configuration
+            f_string = args.train_data + args.valid_data + str(args.msl) + str(args.seed) + args.pretrained + str(args.data_pct)
+            hs = hashlib.md5(f_string.encode()).hexdigest()
+
+            # Load dataset cache if it exists
+            if 'cache_' + hs + '.pt' in os.listdir() and not args.retokenize_data:
+                print("Loading cached dataset")
+                with open('cache_' + hs + '.pt', 'rb') as f:
+                    X_train, y_train, X_valid, y_valid = torch.load(f)
+
+            # Generate dataset cache
+            else:
+                print("Generating and tokenizing dataset")
+                print("Using {:.2f} of the training set.".format(args.data_pct))
+                
+                df = pd.read_csv(args.train_data).sample(frac=args.data_pct, random_state=seed)
+                if num_texts == 1:
+                    X_train = torch.tensor(np.array([tokenize(t, tokenizer, msl=args.msl) for t in tqdm(df[args.text_column])]))
+                    y_train = torch.tensor(df[columns].values)
+                    if num_labels > 1: y_train = y_train.float()
+                elif num_texts == 2:
+                    X_train, y_train = process_data(df, tokenizer, msl=args.msl, s1_column=text_columns[0], 
+                                                    s2_column=text_columns[1], label_column=args.label_column)
+                    
+                df = pd.read_csv(args.valid_data).sample(frac=1.0, random_state=seed)
+                if num_texts == 1:
+                    X_valid = torch.tensor(np.array([tokenize(t, tokenizer, msl=args.msl) for t in tqdm(df[args.text_column])]))
+                    y_valid = torch.tensor(df[columns].values)
+                    if num_labels > 1: y_train = y_train.float()
+                elif num_texts == 2:
+                    X_valid, y_valid = process_data(df, tokenizer, msl=args.msl, s1_column=text_columns[0], 
+                                                    s2_column=text_columns[1], label_column=args.label_column)
+
+                print('Saving cache.')
+                with open('cache_' + hs + '.pt', 'wb') as f:
+                    torch.save([X_train, y_train, X_valid, y_valid], f)
 
             # Dataloaders
             train_set = torch.utils.data.TensorDataset(X_train, y_train)
@@ -192,12 +241,28 @@ def finetune(args):
 
         # Testing proper
         if args.do_eval:
-            # Load the dataset
-            print("Loading and tokenizing test dataset")
-            df = pd.read_csv(args.test_data).sample(frac=1.0, random_state=seed)
-            X_test = torch.tensor(np.array([tokenize(t, tokenizer, msl=args.msl) for t in tqdm(df[args.text_column])]))
-            y_test = torch.tensor(df[columns].values)
-            if num_labels > 1: y_test = y_test.float()
+            # Identify hash for the datset + configuration
+            f_string = args.test_data + str(args.msl) + str(args.seed) + args.pretrained
+            hs = hashlib.md5(f_string.encode()).hexdigest()
+
+            if 'cache_' + hs + '.pt' in os.listdir() and not args.retokenize_data:
+                print("Loading cached test dataset")
+                with open('cache_' + hs + '.pt', 'rb') as f:
+                    X_test, y_test = torch.load(f)
+            else:
+                print("Generating and tokenizing test dataset")
+                df = pd.read_csv(args.test_data).sample(frac=1.0, random_state=seed)
+                if num_texts == 1:
+                    X_test = torch.tensor(np.array([tokenize(t, tokenizer, msl=args.msl) for t in tqdm(df[args.text_column])]))
+                    y_test = torch.tensor(df[columns].values)
+                    if num_labels > 1: y_train = y_train.float()
+                elif num_texts == 2:
+                    X_test, y_test = process_data(df, tokenizer, msl=args.msl, s1_column=text_columns[0], 
+                                                  s2_column=text_columns[1], label_column=args.label_column)
+
+                print('Saving test cache.')
+                with open('cache_' + hs + '.pt', 'wb') as f:
+                    torch.save([X_test, y_test], f)
 
             # Dataloaders
             test_set = torch.utils.data.TensorDataset(X_test, y_test)
@@ -272,9 +337,10 @@ def main():
     parser.add_argument('--valid_data', type=str, help='Path to the validation data.')
     parser.add_argument('--test_data', type=str, help='Path to the testing data.')
     parser.add_argument('--data_pct', type=float, default=1.0, help='Percentage of training data to train on. Reduce to simulate low-resource settings.')
-    parser.add_argument('--text_column', type=str, default='text', help='Column name of the features.')
+    parser.add_argument('--text_column', type=str, default='text', help='Column name(s) of the features. Comma-separated for entailment tasks')
     parser.add_argument('--label_column', type=str, default='label', help='Column name(s) of the labels to predict. Comma-separated for multilabels.')
     parser.add_argument('--lowercase', action='store_true', help='Set when using an uncased model.')
+    parser.add_argument('--retokenize_data', action='store_true', help='Retokenize and generate data again.')
     parser.add_argument('--msl', type=int, default=128, help='Maximum sequence length.')
     
     # Training parameters
