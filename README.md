@@ -2,114 +2,129 @@
 
 *This repository is a work in progress!*
 
-This consolidated repository contains data and models from our two papers: 
+This consolidated repository contains data and models from two of our papers: 
 * Establishing Baselines for Text Classification in Low-Resource Languages [(Cruz & Cheng, 2020)](https://arxiv.org/abs/2005.02068)
 * Evaluating Language Model Finetuning Techniques for Low-resource Languages [(Cruz & Cheng, 2019)](https://arxiv.org/abs/1907.00409)
 
 # Requirements
-* PyTorch v1
-* Transformers
-* Optuna (optional, for hyperparameter search)
-* tqdm
+* PyTorch v.1.x
+* HuggingFace Transformers v.3.0.0
 * NVIDIA GPU (all experiments were done on Tesla P100 GPUs)
 
-# Reproducing Classification Results
-To finetune the models to a text classification dataset, you may use the provided ```train.py``` script. Make sure to remove the ```--lowercase``` flag when using cased models. To fit larger batch sizes on smaller GPUs, set the ```--accumulation``` argument to use gradient accumulation. Please see the script for a full list of command line arguments.
-
-Here's an example that finetunes a small cased ELECTRA model on the Hatespeech dataset.
+# Reproducing Results for Sentence Classification Tasks
+First, download the data and put it in the clones repository:
 
 ```
-python train.py \
+mkdir Filipino-Text-Benchmarks/data
+
+# Hatespeech Dataset
+wget https://s3.us-east-2.amazonaws.com/blaisecruz.com/datasets/hatenonhate/hatespeech_processed.zip
+unzip hatespeech_processed.zip -d Filipino-Text-Benchmarks/data && rm hatespeech_processed.zip
+
+# Dengue Dataset
+wget https://s3.us-east-2.amazonaws.com/blaisecruz.com/datasets/dengue/dengue_processed.zip
+unzip dengue_processed.zip -d Filipino-Text-Benchmarks/data && rm dengue_processed.zip
+```
+
+To finetune for sentence classification tasks, use the ```train.py``` script provided in this repository. Here's an example finetuning a Tagalog ELECTRA model on the Hatespeech dataset:
+
+```
+export DATA_DIR='Filipino-Text-Benchmarks/data/hatespeech'
+
+python Filipino-Text-Benchmarks/train.py \
     --pretrained jcblaise/electra-tagalog-small-cased-discriminator \
-    --train_data hatespeech/train.csv \
-    --valid_data hatespeech/valid.csv \
-    --test_data hatespeech/test.csv \
-    --checkpoint model.pt \
-    --do_train \
-    --do_eval \
+    --train_data ${DATA_DIR}/train.csv \
+    --valid_data ${DATA_DIR}/valid.csv \
+    --test_data ${DATA_DIR}/test.csv \
     --data_pct 1.0 \
+    --checkpoint model.pt \
+    --do_train true \
+    --do_eval true \
     --msl 128 \
     --batch_size 32 \
-    --add_token [LINK] \
-    --add_token [HASHTAG] \
-    --add_token [MENTION] \
-    --weight_decay 8e-7 \
-    --learning_rate 9e-5 \
+    --add_token [LINK],[MENTION],[HASHTAG] \
+    --weight_decay 1e-8 \
+    --learning_rate 2e-4 \
     --adam_epsilon 1e-6 \
-    --use_scheduler \
     --warmup_pct 0.1 \
     --epochs 3 \
-    --seed 8139
+    --seed 42
 ```
 
-Running this setup should give you a validation accuracy of 0.7620 and a testing accuracy of 0.7500.
+This should give you the following results: Valid Loss 0.4980 | Valid Acc 0.7655 | Test Loss 0.5243 | Test Accuracy 0.7467
 
-The ```--label_column``` argument specifies the names of the columns that are considered targets (set to "label" by default). It can also take a comma-separated list of label columns to perform multilabel classification. Here's an example that finetunes a small ELECTRA model on the Dengue dataset.
+To perform multiclass classification, specify the label column names with the ```--label_column``` option. Here's an example finetuning a Tagalog ELECTRA model on the Dengue dataset:
 
 ```
-python train.py \
-    --pretrained jcblaise/electra-tagalog-small-cased-discriminator \
-    --train_data dengue/train.csv \
-    --valid_data dengue/valid.csv \
-    --test_data dengue/test.csv \
-    --label_column absent,dengue,health,mosquito,sick \
-    --checkpoint model.pt \
-    --do_train \
-    --do_eval \
+export DATA_DIR='Filipino-Text-Benchmarks/data/dengue'
+
+python Filipino-Text-Benchmarks/train.py \
+    --pretrained jcblaise/electra-tagalog-small-uncased-discriminator \
+    --train_data ${DATA_DIR}/train.csv \
+    --valid_data ${DATA_DIR}/valid.csv \
+    --test_data ${DATA_DIR}/test.csv \
+    --label_columns absent,dengue,health,mosquito,sick \
     --data_pct 1.0 \
+    --checkpoint model.pt \
+    --do_train true \
+    --do_eval true \
     --msl 128 \
     --batch_size 32 \
-    --add_token [LINK] \
-    --add_token [HASHTAG] \
-    --add_token [MENTION] \
-    --weight_decay 8e-7 \
-    --learning_rate 9e-5 \
+    --add_token [LINK],[MENTION],[HASHTAG] \
+    --weight_decay 1e-8 \
+    --learning_rate 2e-4 \
     --adam_epsilon 1e-6 \
-    --use_scheduler \
     --warmup_pct 0.1 \
     --epochs 3 \
-    --seed 8139
+    --seed 42
 ```
 
-This setup should yield a validation accuracy of 0.8313 and a test accuracy of 0.8553.
+This should give you the following results: Valid Loss 0.1574 | Valid Acc 0.9462 | Test Loss 0.1692 | Test Accuracy 0.9341
 
-# Reproducing Sentence Entailment Results
-*Coming soon*
+# Reproducing Results for Sentence Pair Classification Tasks
+To finetune for sentence-pair classification (entailment datasets), you can specify the text column names using the ```--text_column``` option. Here's an example finetuning an uncased Tagalog ELECTRA model:
+
+```
+export DATA_DIR='Filipino-Text-Benchmarks/data/nli_dataset'
+
+python Filipino-Text-Benchmarks/train.py \
+    --pretrained jcblaise/electra-tagalog-small-uncased-discriminator \
+    --train_data ${DATA_DIR}/train.csv \
+    --valid_data ${DATA_DIR}/valid.csv \
+    --test_data ${DATA_DIR}/test.csv \
+    --text_columns s1,s2 \
+    --data_pct 1.0 \
+    --checkpoint model.pt \
+    --do_train true \
+    --do_eval true \
+    --msl 128 \
+    --batch_size 32 \
+    --weight_decay 1e-8 \
+    --learning_rate 1e-4 \
+    --adam_epsilon 1e-6 \
+    --warmup_pct 0.1 \
+    --epochs 3 \
+    --seed 42
+```
+
+We will release an NLI dataset along with benchmarks for our new ELECTRA models soon with a paper, so stay tuned!
 
 # Hyperparameter Search
-You can perform hyperparameter search via Optuna using the same script. Toggle the ```--optimize_hyperparameters``` argument to use hyperparameter search. Searching for random seed (```---optimize_seed```), learning rate (```---optimize_learning_rate```), and weight decay (```---optimize_weight_decay```) are available out of the box. You can also toggle ```---dont_save``` to forego checkpoint saving to save on time and operations during long runs.
+To reproduce hyperparameter search results, you need to use the sweep function of [Weights & Biases](https://www.wandb.com/). For an example sweep, a ```sample_sweep.yaml``` file is included. This configuration sweeps for good random seeds on the Hatespeech dataset. Edit the file to your specifications as needed. For more information, check the [documentation](https://docs.wandb.com/sweeps/configuration).
 
-Here's a sample search for random seed run for 100 trials using an uncased ELECTRA model (don't forget to toggle ```--lowercase``` when using uncased models!)
+To start a sweep, make sure to login first via the terminal, then run:
 
 ```
-python train.py \
-    --pretrained jcblaise/electra-tagalog-small-uncased-discriminator \
-    --lowercase \
-    --train_data hatespeech/train.csv \
-    --valid_data hatespeech/valid.csv \
-    --do_train \
-    --dont_save \
-    --data_pct 1.0 \
-    --msl 128 \
-    --batch_size 32 \
-    --accumulation 1 \
-    --add_token [LINK] \
-    --add_token [HASHTAG] \
-    --add_token [MENTION] \
-    --weight_decay 8e-7 \
-    --learning_rate 9e-5 \
-    --adam_epsilon 1e-6 \
-    --use_scheduler \
-    --warmup_pct 0.1 \
-    --epochs 3 \
-    --seed 42 \
-    --optimize_hyperparameters \
-    --study_name seed_search \
-    --opt_n_trials 100 \
-    --optimize_seed \
-    --opt_seed_lowerbound 1 \
-    --opt_seed_upperbound 9999
+wandb sweep -p PROJECT_NAME Filipino-Text-Benchmarks/sample_sweep.yaml
 ```
+
+This creates a sweep agent that you can run. Perform the sweep by running:
+
+```
+cd Filipino-Text-Benchmarks && wandb agent USERNAME/test/SWEEP_ID
+```
+
+where SWEEP_ID is the id generated by the ```wandb sweep``` command, and USERNAME is your W&B username. Make sure that you have the necessary data files in the ```data/``` folder inside the repository when running this example sweep.
 
 # Datasets
 * **WikiText-TL-39** [`download`](https://s3.us-east-2.amazonaws.com/blaisecruz.com/datasets/wikitext-tl-39/wikitext-tl-39.zip)\
@@ -125,7 +140,7 @@ Contains 10k tweets (training set) that are labeled as hate speech or non-hate s
 Benchmark dataset for low-resource multiclass classification, with 4,015 training, 500 testing, and 500 validation examples, each labeled as part of five classes. Each sample can be a part of multiple classes. Collected as tweets and originally used in Livelo & Cheng (2018).
 
 # Pretrained ELECTRA Models
-We release new ELECTRA models in small and base configurations, with both the discriminator and generators available. All the models follow the same setups and were trained with the same hyperparameters as English ELECTRA models. Our models are available on HuggingFace Transformers and can be used on both PyTorch and Tensorflow.
+We release new ELECTRA models in small and base configurations, with both the discriminator and generators available. All the models follow the same setups and were trained with the same hyperparameters as English ELECTRA models. Our models are available on HuggingFace Transformers and can be used on both PyTorch and Tensorflow. Paper will be released soon.
 
 **Discriminator Models**
 

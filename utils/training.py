@@ -70,8 +70,9 @@ def run_finetuning(args):
 
     # Configure tokenizer
     tokenizer = AutoTokenizer.from_pretrained(args.pretrained, do_lower_case=True if 'uncased' in args.pretrained else False)
-    add_token = {'additional_special_tokens': args.add_token.split(',')}
-    added = tokenizer.add_special_tokens(add_token)
+    if args.add_token is not None:
+        add_token = {'additional_special_tokens': args.add_token.split(',')}
+        added = tokenizer.add_special_tokens(add_token)
 
     # Get text columns
     t_columns = args.text_columns.split(',')
@@ -85,7 +86,7 @@ def run_finetuning(args):
 
     if args.do_train:
         print('\n' + '=' * 50, '\nCONFIGURE FINETUNING SETUP', '\n' + '=' * 50)
-        if added > 0: print("Addded {} special tokens:".format(added), args.add_token)
+        if args.add_token is not None: print("Addded {} special tokens:".format(added), args.add_token)
 
         # Produce hash code for cache
         f_string = args.train_data + args.valid_data + str(args.msl) + str(args.seed) + args.pretrained + str(args.data_pct)

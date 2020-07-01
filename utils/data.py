@@ -23,9 +23,9 @@ def process_data(text, labels, tokenizer, msl=128):
     # Process text
     if len(text.shape) == 2: # Sentence pair tasks
         text = [tuple(t) for t in text]
-        encodings = tokenizer(text, truncation=True, padding='max_length', max_length=msl)
+        encodings = tokenizer(text, truncation='longest_first', padding='max_length', max_length=msl)
     elif len(text.shape) == 1: # Sentence tasks
-        encodings = tokenizer(list(text), truncation=True, padding='max_length', max_length=msl)
+        encodings = tokenizer(list(text), truncation='longest_first', padding='max_length', max_length=msl)
 
     # Process labels
     targets = process_labels(labels)

@@ -6,8 +6,8 @@ metric:
 parameters:
   seed:
     distribution: int_uniform
-    min: 21
-    max: 84
+    min: 1
+    max: 9999
   learning_rate:
     value: 2e-4
   weight_decay:
@@ -15,11 +15,11 @@ parameters:
   pretrained:
     value: jcblaise/electra-tagalog-small-cased-discriminator
   train_data:
-    value: hatespeech/train.csv
+    value: data/hatespeech/train.csv
   valid_data:
-    value: hatespeech/valid.csv
+    value: data/hatespeech/valid.csv
   test_data:
-    value: hatespeech/test.csv
+    value: data/hatespeech/test.csv
   text_columns:
     value: text
   label_columns:

@@ -47,16 +47,18 @@ def main():
     for key in vars(args):
         print("{}: {}".format(key, vars(args)[key]))
 
-    # Run finetuning
-    metrics = run_finetuning(args)
-
-    # Weights and Biases
+    # Setup weights and biases
     if args.use_wandb:
-        print('\n' + '=' * 50, '\nWEIGHTS AND BIASES LOGGING', '\n' + '=' * 50)
         import wandb
         wandb.init(entity=args.wandb_username, project=args.wandb_project_name, reinit=True)
         config = wandb.config.update(args)
 
+    # Run finetuning
+    metrics = run_finetuning(args)
+
+    # Logging
+    if args.use_wandb:
+        print('\n' + '=' * 50, '\nWEIGHTS AND BIASES LOGGING', '\n' + '=' * 50)
         wandb.log({"Train Loss": metrics[0], 
                    "Train Accuracy": metrics[1],
                    "Validation Loss": metrics[2], 
