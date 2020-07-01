@@ -8,17 +8,17 @@ This consolidated repository contains data and models from two of our papers:
 
 ### Table of Contents
 
-* Requirements
+* [Requirements](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks#requirements)
 * Reproducing Results
     * Sentence Classification Tasks
     * Sentence-Pair Classification Tasks
-* Hyperparameter Search
-* Released Datasets
-* Pretrained ELECTRA Models
-* Pretrained BERT Models
-* Other Pretrained Models
-* Citations
-* Contributing and Acknowledgements
+* [Hyperparameter Search](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks#hyperparameter-search)
+* [Released Datasets](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks#datasets)
+* [Pretrained ELECTRA Models](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks#pretrained-electra-models)
+* [Pretrained BERT Models](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks#pretrained-bert-models)
+* [Other Pretrained Models](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks#other-pretrained-models)
+* [Citations](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks#citations)
+* [Contributing and Acknowledgements](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks#contributions-and-acknowledgements)
 
 # Requirements
 * PyTorch v.1.x
@@ -40,7 +40,7 @@ wget https://s3.us-east-2.amazonaws.com/blaisecruz.com/datasets/dengue/dengue_pr
 unzip dengue_processed.zip -d Filipino-Text-Benchmarks/data && rm dengue_processed.zip
 ```
 
-**Sentence Classification Tasks**
+### Sentence Classification Tasks
 
 To finetune for sentence classification tasks, use the ```train.py``` script provided in this repository. Here's an example finetuning a Tagalog ELECTRA model on the Hatespeech dataset:
 
@@ -111,7 +111,7 @@ Test Accuracy 0.9341
 
 For more information, run ```train.py --help``` for details on each command line argument.
 
-**Sentence-Pair Classification Tasks**
+### Sentence-Pair Classification Tasks
 
 To finetune for sentence-pair classification (entailment datasets), you can specify the text column names using the ```--text_column``` option. Here's an example finetuning an uncased Tagalog ELECTRA model:
 
@@ -202,7 +202,7 @@ tokenizer = AutoTokenizer.from_pretrained('jcblaise/electra-tagalog-small-cased-
 ```
 
 # Pretrained BERT Models
-We release four Tagalog BERT Base models and one Tagalog DistilBERT Base model. All the models use the same configurations as the original English BERT models. Our models are available on HuggingFace Transformers and can be used on both PyTorch and Tensorflow.
+We release four Tagalog BERT Base models and one Tagalog DistilBERT Base model. All the models use the same configurations as the original English BERT models. Our models are available on HuggingFace Transformers and can be used on both PyTorch and Tensorflow. These models were released as part of [Cruz & Cheng (2019)](https://arxiv.org/abs/1907.00409).
 
 * BERT Base Cased - [`jcblaise/bert-tagalog-base-cased`](https://huggingface.co/jcblaise/bert-tagalog-base-cased) 
 * BERT Base Uncased - [`jcblaise/bert-tagalog-base-uncased`](https://huggingface.co/jcblaise/bert-tagalog-base-uncased) 
