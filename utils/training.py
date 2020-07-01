@@ -65,6 +65,7 @@ def evaluate(model, criterion, valid_loader, device=None):
 
 # Run full finetuning
 def run_finetuning(args):
+    print('\n' + '=' * 50, '\nBEGIN FINETUNING PROPER', '\n' + '=' * 50)
     torch.manual_seed(args.seed)
     device = torch.device('cuda' if torch.cuda.is_available() and not args.no_cuda else 'cpu')
 
@@ -152,7 +153,7 @@ def run_finetuning(args):
         print(" with scheduler using warmup pct {}".format(args.warmup_pct)) if args.use_scheduler else print("")
 
         # Training proper
-        print("Begin training.")
+        print('\n' + '=' * 50, '\nTRAINING', '\n' + '=' * 50)
         for e in range(1, args.epochs + 1):
             train_loss, train_acc = train(model, criterion, optimizer, train_loader, scheduler=scheduler, accumulation=args.accumulation, device=device)
             valid_loss, valid_acc = evaluate(model, criterion, valid_loader, device=device)
@@ -163,6 +164,8 @@ def run_finetuning(args):
                 torch.save(model.state_dict(), f)
 
     if args.do_eval:
+        print('\n' + '=' * 50, '\nBEGIN EVALUATION PROPER', '\n' + '=' * 50)
+
         # Produce hash code for test cache
         f_string = args.test_data + str(args.msl) + str(args.seed) + args.pretrained
         hashed = 'cache_' + hashlib.md5(f_string.encode()).hexdigest() + '.pt'
@@ -203,6 +206,6 @@ def run_finetuning(args):
         criterion = torch.nn.CrossEntropyLoss() if num_labels == 1 else torch.nn.BCEWithLogitsLoss()
 
         # Testing proper
-        print("Begin evaluation.")
+        print('\n' + '=' * 50, '\nTESTING', '\n' + '=' * 50)
         test_loss, test_acc = evaluate(model, criterion, test_loader, device=device)
         print("Test Loss {:.4f} | Test Accuracy {:.4f}".format(test_loss, test_acc))

@@ -38,7 +38,12 @@ def main():
     parser.add_argument('--wandb_project_name', type=str, help='Name of project in Weight and Biases.')
     parser.add_argument('--wandb_username', type=str, help='Username in Weight and Biases.')
     
-    print(args)
+    args = parser.parse_args()
+    
+    # Log the configuration
+    print('=' * 50, '\nCONFIGURATION', '\n' + '=' * 50)
+    for key in vars(args):
+        print("{}: {}".format(key, vars(args)[key]))
 
     # Run finetuning
     run_finetuning(args)
