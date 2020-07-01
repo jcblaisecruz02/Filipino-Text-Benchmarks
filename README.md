@@ -1,9 +1,9 @@
 # Filipino-Text-Benchmarks
-This repository contains open-source benchmark datasets and pretrained transformer models in Filipino
+This repository contains open-source benchmark datasets and pretrained transformer models in the low-resource Filipino language.
 
 <img src="assets/banner.png" width="70%">
 
-The resources in this repository come from the following works, with more to be added soon:
+Resources and code released in this repository come from the following papers, with more to be added soon:
 1. Establishing Baselines for Text Classification in Low-Resource Languages [(Cruz & Cheng, 2020)](https://arxiv.org/abs/2005.02068)
 2. Evaluating Language Model Finetuning Techniques for Low-resource Languages [(Cruz & Cheng, 2019)](https://arxiv.org/abs/1907.00409)
 
