@@ -14,13 +14,13 @@ def main():
     parser.add_argument('--data_pct', type=float, default=1.0, help='Percentage of training data to train on. Reduce to simulate low-resource settings.')
     parser.add_argument('--text_columns', type=str, default='text', help='Column name(s) of the features. Comma-separated for entailment tasks')
     parser.add_argument('--label_columns', type=str, default='label', help='Column name(s) of the labels to predict. Comma-separated for multilabels.')
-    parser.add_argument('--retokenize_data', type=str2bool, default='false', help='Finetune the model.')
+    parser.add_argument('--retokenize_data', type=str2bool, default='false', help='Force the script to generate data cache again.')
     parser.add_argument('--save_cache', type=str2bool, default='true', help='Save the data cache.')
     parser.add_argument('--msl', type=int, default=128, help='Maximum sequence length.')
     
     # Training parameters
     parser.add_argument('--do_train', type=str2bool, default='true', help='Finetune the model.')
-    parser.add_argument('--do_eval', type=str2bool, default='true', help='Finetune the model.')
+    parser.add_argument('--do_eval', type=str2bool, default='true', help='Evaluate the model.')
     parser.add_argument('--batch_size', type=int, default=32, help='Batch size.')
     parser.add_argument('--accumulation', type=int, default=1, help='Gradient accumulation steps.')
     parser.add_argument('--add_token', type=str, help='Additional special tokens.')

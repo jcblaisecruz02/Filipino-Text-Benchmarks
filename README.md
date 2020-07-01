@@ -3,15 +3,29 @@
 *This repository is a work in progress!*
 
 This consolidated repository contains data and models from two of our papers: 
-* Establishing Baselines for Text Classification in Low-Resource Languages [(Cruz & Cheng, 2020)](https://arxiv.org/abs/2005.02068)
-* Evaluating Language Model Finetuning Techniques for Low-resource Languages [(Cruz & Cheng, 2019)](https://arxiv.org/abs/1907.00409)
+1. Establishing Baselines for Text Classification in Low-Resource Languages [(Cruz & Cheng, 2020)](https://arxiv.org/abs/2005.02068)
+2. Evaluating Language Model Finetuning Techniques for Low-resource Languages [(Cruz & Cheng, 2019)](https://arxiv.org/abs/1907.00409)
+
+### Table of Contents
+
+* Requirements
+* Reproducing Results
+    * Sentence Classification Tasks
+    * Sentence-Pair Classification Tasks
+* Hyperparameter Search
+* Released Datasets
+* Pretrained ELECTRA Models
+* Pretrained BERT Models
+* Other Pretrained Models
+* Citations
+* Contributing and Acknowledgements
 
 # Requirements
 * PyTorch v.1.x
 * HuggingFace Transformers v.3.0.0
 * NVIDIA GPU (all experiments were done on Tesla P100 GPUs)
 
-# Reproducing Results for Sentence Classification Tasks
+# Reproducing Results
 First, download the data and put it in the cloned repository:
 
 ```bash
@@ -25,6 +39,8 @@ unzip hatespeech_processed.zip -d Filipino-Text-Benchmarks/data && rm hatespeech
 wget https://s3.us-east-2.amazonaws.com/blaisecruz.com/datasets/dengue/dengue_processed.zip
 unzip dengue_processed.zip -d Filipino-Text-Benchmarks/data && rm dengue_processed.zip
 ```
+
+**Sentence Classification Tasks**
 
 To finetune for sentence classification tasks, use the ```train.py``` script provided in this repository. Here's an example finetuning a Tagalog ELECTRA model on the Hatespeech dataset:
 
@@ -51,7 +67,13 @@ python Filipino-Text-Benchmarks/train.py \
     --seed 42
 ```
 
-This should give you the following results: Valid Loss 0.4980 | Valid Acc 0.7655 | Test Loss 0.5243 | Test Accuracy 0.7467
+This should give you the following results: 
+```
+Valid Loss 0.4980
+Valid Acc 0.7655
+Test Loss 0.5243
+Test Accuracy 0.7467
+```
 
 To perform multiclass classification, specify the label column names with the ```--label_column``` option. Here's an example finetuning a Tagalog ELECTRA model on the Dengue dataset:
 
@@ -79,9 +101,18 @@ python Filipino-Text-Benchmarks/train.py \
     --seed 42
 ```
 
-This should give you the following results: Valid Loss 0.1574 | Valid Acc 0.9462 | Test Loss 0.1692 | Test Accuracy 0.9341
+This should give you the following results: 
+```
+Valid Loss 0.1574
+Valid Acc 0.9462
+Test Loss 0.1692
+Test Accuracy 0.9341
+```
 
-# Reproducing Results for Sentence Pair Classification Tasks
+For more information, run ```train.py --help``` for details on each command line argument.
+
+**Sentence-Pair Classification Tasks**
+
 To finetune for sentence-pair classification (entailment datasets), you can specify the text column names using the ```--text_column``` option. Here's an example finetuning an uncased Tagalog ELECTRA model:
 
 ```bash
@@ -222,4 +253,5 @@ If you found our work useful, please make sure to cite!
 Should you find any bugs or have any suggestions, feel free to drop by the Issues tab! We'll get back to you as soon as we can.
 
 *This repository is managed by the De La Salle University Machine Learning Group*
-![MLG Logo](assets/full_logo.png)
+
+<img src="assets/full_logo.png" width="30%">
