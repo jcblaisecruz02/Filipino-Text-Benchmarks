@@ -36,7 +36,7 @@ def main():
     parser.add_argument('--dont_save', type=str2bool, default='false', help='Do not save finetuned model.')
     
     # Logging
-    parser.add_argument('--use_wandb', type=str2bool, default='true', help='Use wandb logging.')
+    parser.add_argument('--use_wandb', type=str2bool, default='false', help='Use wandb logging.')
     parser.add_argument('--wandb_project_name', type=str, help='Name of project in Weight and Biases.')
     parser.add_argument('--wandb_username', type=str, help='Username in Weight and Biases.')
     
