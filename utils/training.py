@@ -209,3 +209,8 @@ def run_finetuning(args):
         print('\n' + '=' * 50, '\nTESTING', '\n' + '=' * 50)
         test_loss, test_acc = evaluate(model, criterion, test_loader, device=device)
         print("Test Loss {:.4f} | Test Accuracy {:.4f}".format(test_loss, test_acc))
+
+    # Logging
+    if not args.do_train: train_loss, train_acc, valid_loss, valid_acc = None, None, None, None
+    if not args.do_eval: test_loss, test_acc = None, None
+    return train_loss, train_acc, valid_loss, valid_acc, test_loss, test_acc
