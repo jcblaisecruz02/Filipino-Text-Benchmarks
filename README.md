@@ -1,5 +1,7 @@
 # Filipino-Text-Benchmarks
 
+<img src="assets/banner.png" width="70%">
+
 *This repository is a work in progress!*
 
 This consolidated repository contains data and models from two of our papers: 
