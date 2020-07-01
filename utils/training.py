@@ -65,15 +65,13 @@ def evaluate(model, criterion, valid_loader, device=None):
 
 # Run full finetuning
 def run_finetuning(args):
-    print('\n' + '=' * 50, '\nBEGIN FINETUNING PROPER', '\n' + '=' * 50)
     torch.manual_seed(args.seed)
     device = torch.device('cuda' if torch.cuda.is_available() and not args.no_cuda else 'cpu')
 
     # Configure tokenizer
     tokenizer = AutoTokenizer.from_pretrained(args.pretrained, do_lower_case=True if 'uncased' in args.pretrained else False)
-    add_token = {'additional_special_tokens': args.add_token}
+    add_token = {'additional_special_tokens': args.add_token.split(',')}
     added = tokenizer.add_special_tokens(add_token)
-    if added > 0: print("Addded {} special tokens:".format(added), args.add_token)
 
     # Get text columns
     t_columns = args.text_columns.split(',')
@@ -86,6 +84,9 @@ def run_finetuning(args):
     if num_labels == 1: l_columns = l_columns[0]
 
     if args.do_train:
+        print('\n' + '=' * 50, '\nCONFIGURE FINETUNING SETUP', '\n' + '=' * 50)
+        if added > 0: print("Addded {} special tokens:".format(added), args.add_token)
+
         # Produce hash code for cache
         f_string = args.train_data + args.valid_data + str(args.msl) + str(args.seed) + args.pretrained + str(args.data_pct)
         hashed = 'cache_' + hashlib.md5(f_string.encode()).hexdigest() + '.pt'
@@ -103,8 +104,10 @@ def run_finetuning(args):
             text, labels = df[t_columns].values, df[l_columns].values
             valid_dataset = process_data(text, labels, tokenizer, msl=args.msl)
 
-            with open(hashed, 'wb') as f:
-                torch.save([train_dataset, valid_dataset], f)
+            if args.save_cache:
+                print('Saving data cache')
+                with open(hashed, 'wb') as f:
+                    torch.save([train_dataset, valid_dataset], f)
 
             print("Preprocessing finished. Time elapsed: {:.2f}s".format(time.time() - s))
 
@@ -179,8 +182,10 @@ def run_finetuning(args):
             text, labels = df[t_columns].values, df[l_columns].values
             test_dataset = process_data(text, labels, tokenizer, msl=args.msl)
 
-            with open(hashed, 'wb') as f:
-                torch.save(test_dataset, f)
+            if args.save_cache:
+                print('Saving data cache')
+                with open(hashed, 'wb') as f:
+                    torch.save(test_dataset, f)
 
             print("Preprocessing finished. Time elapsed: {:.2f}s".format(time.time() - s))
 

@@ -1,6 +1,11 @@
 import torch
 import numpy as np
 
+def str2bool(v):
+    if v.lower()  == 'true': return True
+    elif v.lower() == 'false': return False
+    else: raise argparse.ArgumentTypeError('Boolean value expected.')
+
 def process_labels(labels):
     # If the task has multiple label columns
     if len(labels.shape) == 2:
