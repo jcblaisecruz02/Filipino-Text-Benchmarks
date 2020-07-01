@@ -9,15 +9,15 @@ def str2bool(v):
 def process_labels(labels):
     # If the task has multiple label columns
     if len(labels.shape) == 2:
-        return labels
+        return torch.tensor(labels).float()
 
     # If the task has one label columns
     elif len(labels.shape) == 1:
         if type(labels[0]) is not int:
             labellist = list(set(labels))
             encodings = [labellist.index(l) for l in labels]
-            return encodings
-        return labels
+            return torch.tensor(encodings)
+        return torch.tensor(labels)
 
 def process_data(text, labels, tokenizer, msl=128):
     # Process text
@@ -34,6 +34,6 @@ def process_data(text, labels, tokenizer, msl=128):
     dataset = torch.utils.data.TensorDataset(torch.tensor(encodings.input_ids), 
                                              torch.tensor(encodings.token_type_ids), 
                                              torch.tensor(encodings.attention_mask), 
-                                             torch.tensor(targets))
+                                             targets)
 
     return dataset

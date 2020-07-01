@@ -157,6 +157,7 @@ def run_finetuning(args):
 
         # Training proper
         print('\n' + '=' * 50, '\nTRAINING', '\n' + '=' * 50)
+        print("Training batches: {} | Validation batches: {}".format(len(train_loader), len(valid_loader)))
         for e in range(1, args.epochs + 1):
             train_loss, train_acc = train(model, criterion, optimizer, train_loader, scheduler=scheduler, accumulation=args.accumulation, device=device)
             valid_loss, valid_acc = evaluate(model, criterion, valid_loader, device=device)
