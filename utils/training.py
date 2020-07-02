@@ -139,13 +139,20 @@ def run_finetuning(args):
         criterion = torch.nn.CrossEntropyLoss() if num_labels == 1 else torch.nn.BCEWithLogitsLoss()
 
         # Configure optimizer
-        no_decay = ["bias", "LayerNorm.weight"]
-        optimizer_grouped_parameters = [{"params": [p for n, p in model.named_parameters() if not any(nd in n for nd in no_decay)], 
-                                        "weight_decay": args.weight_decay}, 
-                                        {"params": [p for n, p in model.named_parameters() if any(nd in n for nd in no_decay)], 
-                                        "weight_decay": 0.0}]
-        optimizer = AdamW(optimizer_grouped_parameters, lr=args.learning_rate, eps=args.adam_epsilon)
-        optimizer.zero_grad()
+        if args.optimizer == 'adam':
+            no_decay = ["bias", "LayerNorm.weight"]
+            optimizer_grouped_parameters = [{"params": [p for n, p in model.named_parameters() if not any(nd in n for nd in no_decay)], 
+                                            "weight_decay": args.weight_decay}, 
+                                            {"params": [p for n, p in model.named_parameters() if any(nd in n for nd in no_decay)], 
+                                            "weight_decay": 0.0}]
+            optimizer = AdamW(optimizer_grouped_parameters, lr=args.learning_rate, eps=args.adam_epsilon)
+            optimizer.zero_grad()
+        elif args.optimizer == 'lamb':
+            from pytorch_lamb import Lamb
+            optimizer = Lamb(model.parameters(), 
+                             lr=args.learning_rate, 
+                             weight_decay=args.weight_decay,
+                             betas=(args.adam_beta1, args.adam_beta2))
 
         # Configure scheduler
         if args.use_scheduler:
