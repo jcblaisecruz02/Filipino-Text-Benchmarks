@@ -1,2 +1,3 @@
 *.sh
 .ipynb_checkpoints/
+sweeps/
