@@ -65,7 +65,7 @@ def main():
         wandb.log({"Train Loss": metrics[0], 
                    "Train Accuracy": metrics[1],
                    "Validation Loss": metrics[2], 
-                   "Valiation Accuracy": metrics[3],
+                   "Validation Accuracy": metrics[3],
                    "Test Loss": metrics[4], 
                    "Test Accuracy": metrics[5],})
 

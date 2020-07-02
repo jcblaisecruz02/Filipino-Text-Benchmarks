@@ -1,0 +1,72 @@
+method: bayes
+metric:
+  goal: maximize
+  name: Validation Accuracy
+parameters:
+  accumulation:
+    value: 1
+  adam_b1:
+    value: 0.9
+  adam_b2:
+    value: 0.999
+  adam_epsilon:
+    value: 1e-06
+  add_token:
+    value: ''
+  batch_size:
+    value: 256
+  checkpoint:
+    value: model.pt
+  data_pct:
+    value: 1
+  do_eval:
+    value: true
+  do_train:
+    value: true
+  dont_save:
+    value: false
+  epochs:
+    value: 3
+  label_columns:
+    value: label
+  learning_rate:
+    distribution: uniform
+    max: 1e-2
+    min: 5e-05
+  msl:
+    value: 128
+  no_cuda:
+    value: false
+  optimizer:
+    value: lamb
+  pretrained:
+    value: jcblaise/electra-tagalog-small-cased-discriminator
+  random_init:
+    value: false
+  retokenize_data:
+    value: false
+  save_cache:
+    value: true
+  seed:
+    value: 42
+  test_data:
+    value: data/newsph-nli/test.csv
+  text_columns:
+    value: s1,s2
+  train_data:
+    value: data/newsph-nli/train.csv
+  use_scheduler:
+    value: true
+  use_wandb:
+    value: true
+  valid_data:
+    value: data/newsph-nli/valid.csv
+  wandb_project_name:
+    value: lamb_study
+  wandb_username:
+    value: jcblaise
+  warmup_pct:
+    value: 0.1
+  weight_decay:
+    value: 0.0
+program: train.py
