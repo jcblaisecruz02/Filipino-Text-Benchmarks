@@ -86,7 +86,7 @@ def run_finetuning(args):
 
     if args.do_train:
         print('\n' + '=' * 50, '\nCONFIGURE FINETUNING SETUP', '\n' + '=' * 50)
-        if args.add_token is not None: print("Addded {} special tokens:".format(added), args.add_token)
+        if args.add_token != '': print("Addded {} special tokens:".format(added), args.add_token)
 
         # Produce hash code for cache
         f_string = args.train_data + args.valid_data + str(args.msl) + str(args.seed) + args.pretrained + str(args.data_pct)
