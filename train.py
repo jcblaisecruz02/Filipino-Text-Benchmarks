@@ -26,7 +26,7 @@ def main():
     parser.add_argument('--adam_b1', type=float, default=0.9, help='Adam Beta1.')
     parser.add_argument('--adam_b2', type=float, default=0.999, help='Adam Beta2.')
     parser.add_argument('--accumulation', type=int, default=1, help='Gradient accumulation steps.')
-    parser.add_argument('--add_token', type=str, help='Additional special tokens.')
+    parser.add_argument('--add_token', type=str, , default='', help='Additional special tokens.')
     parser.add_argument('--random_init', type=str2bool, default='false', help='Randomly initialize the model')
     parser.add_argument('--weight_decay', type=float, default=0.0, help='Weight decay.')
     parser.add_argument('--learning_rate', type=float, default=5e-5, help='Learning rate.')

@@ -70,7 +70,7 @@ def run_finetuning(args):
 
     # Configure tokenizer
     tokenizer = AutoTokenizer.from_pretrained(args.pretrained, do_lower_case=True if 'uncased' in args.pretrained else False)
-    if args.add_token is not None:
+    if args.add_token != '':
         add_token = {'additional_special_tokens': args.add_token.split(',')}
         added = tokenizer.add_special_tokens(add_token)
 
