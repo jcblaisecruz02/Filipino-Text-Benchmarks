@@ -152,7 +152,7 @@ def run_finetuning(args):
             optimizer = Lamb(model.parameters(), 
                              lr=args.learning_rate, 
                              weight_decay=args.weight_decay,
-                             betas=(args.adam_beta1, args.adam_beta2))
+                             betas=(args.adam_b1, args.adam_b2))
 
         # Configure scheduler
         if args.use_scheduler:

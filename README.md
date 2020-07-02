@@ -62,6 +62,7 @@ python Filipino-Text-Benchmarks/train.py \
     --do_train true \
     --do_eval true \
     --msl 128 \
+    --optimizer adam \
     --batch_size 32 \
     --add_token [LINK],[MENTION],[HASHTAG] \
     --weight_decay 1e-8 \
@@ -96,6 +97,7 @@ python Filipino-Text-Benchmarks/train.py \
     --do_train true \
     --do_eval true \
     --msl 128 \
+    --optimizer adam \
     --batch_size 32 \
     --add_token [LINK],[MENTION],[HASHTAG] \
     --weight_decay 1e-8 \
@@ -134,6 +136,7 @@ python Filipino-Text-Benchmarks/train.py \
     --do_train true \
     --do_eval true \
     --msl 128 \
+    --optimizer adam \
     --batch_size 32 \
     --weight_decay 1e-8 \
     --learning_rate 1e-4 \
