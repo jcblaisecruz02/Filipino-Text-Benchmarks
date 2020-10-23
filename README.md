@@ -23,6 +23,7 @@ Resources and code released in this repository come from the following papers, w
 * [Pretrained BERT Models](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks#pretrained-bert-models)
 * [Other Pretrained Models](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks#other-pretrained-models)
 * [Citations](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks#citations)
+* [Related Repositories](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks#related-repositories)
 * [Contributing and Acknowledgements](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks#contributions-and-acknowledgements)
 
 # Requirements
@@ -297,6 +298,11 @@ If you found our work useful, please make sure to cite!
   year={2019}
 }
 ```
+
+# Related Repositories
+Repositories for adjacent projects and papers made by our team that use the models found here:
+* [jcblaisecruz02/Tagalog-fake-news](https://github.com/jcblaisecruz02/Tagalog-fake-news) - Automatic low-resource fake news detection in Filipino.
+* [danjohnvelasco/Filipino-ULMFiT](https://github.com/danjohnvelasco/Filipino-ULMFiT) - ULMFiT benchmarks on our released classification benchmark datasets.
 
 # Contributions and Acknowledgements
 Should you find any bugs or have any suggestions, feel free to drop by the Issues tab! We'll get back to you as soon as we can.
