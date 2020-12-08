@@ -242,13 +242,11 @@ pipe = pipeline('fill-mask', model='jcblaise/electra-tagalog-base-cased-generato
 s = "Ito ang Pilipinas, ang aking [MASK] Hinirang"
 pipe(s)
 
-# It will output the following prediction:
-#
 # [{'score': 0.9990490078926086,
 #   'sequence': '[CLS] Ito ang Pilipinas, ang aking Lupang Hinirang [SEP]',
 #   'token': 21327,
 #   'token_str': 'Lupang'},
-# ...
+#  ...
 
 ```
 
