@@ -24,10 +24,19 @@ def accuracy(out, y):
 def train(model, criterion, optimizer, train_loader, scheduler=None, accumulation=1, device=None):
     model.train()
     train_loss, train_acc = 0, 0
-    for i, (x, token_type_ids, attention_mask, y) in enumerate(tqdm(train_loader)):
-        x, y = x.to(device), y.to(device)
-        token_type_ids, attention_mask = token_type_ids.to(device), attention_mask.to(device)
-        out = model(input_ids=x, token_type_ids=token_type_ids, attention_mask=attention_mask)[0]
+    for i, batch in enumerate(tqdm(train_loader)):
+        
+        if 'distilbert' in str(type(model)):
+            x, attention_mask, y = batch
+            x, y = x.to(device), y.to(device)
+            attention_mask = attention_mask.to(device)
+            out = model(input_ids=x, attention_mask=attention_mask)[0]
+        else:
+            x, token_type_ids, attention_mask, y = batch
+            x, y = x.to(device), y.to(device)
+            token_type_ids, attention_mask = token_type_ids.to(device), attention_mask.to(device)
+            out = model(input_ids=x, token_type_ids=token_type_ids, attention_mask=attention_mask)[0]
+
 
         loss = criterion(out, y)
         loss.backward() 
@@ -48,12 +57,21 @@ def train(model, criterion, optimizer, train_loader, scheduler=None, accumulatio
 def evaluate(model, criterion, valid_loader, device=None):
     model.eval()
     valid_loss, valid_acc = 0, 0
-    for x, token_type_ids, attention_mask, y in tqdm(valid_loader):
-        x, y = x.to(device), y.to(device)
-        token_type_ids, attention_mask = token_type_ids.to(device), attention_mask.to(device)
+    for batch in tqdm(valid_loader):
+        if 'distilbert' in str(type(model)):
+            x, attention_mask, y = batch
+            x, y = x.to(device), y.to(device)
+            attention_mask = attention_mask.to(device)
+            with torch.no_grad():
+                out = model(input_ids=x, attention_mask=attention_mask)[0]
+        else:
+            x, token_type_ids, attention_mask, y = batch
+            x, y = x.to(device), y.to(device)
+            token_type_ids, attention_mask = token_type_ids.to(device), attention_mask.to(device)
+            with torch.no_grad():
+                out = model(input_ids=x, token_type_ids=token_type_ids, attention_mask=attention_mask)[0]
+        
         with torch.no_grad():
-            out = model(input_ids=x, token_type_ids=token_type_ids, attention_mask=attention_mask)[0]
-
             loss = criterion(out, y)
 
         valid_loss += loss.item()
@@ -69,7 +87,7 @@ def run_finetuning(args):
     device = torch.device('cuda' if torch.cuda.is_available() and not args.no_cuda else 'cpu')
 
     # Configure tokenizer
-    tokenizer = AutoTokenizer.from_pretrained(args.pretrained, do_lower_case=True if 'uncased' in args.pretrained else False)
+    tokenizer = AutoTokenizer.from_pretrained(args.pretrained)
     if args.add_token != '':
         add_token = {'additional_special_tokens': args.add_token.split(',')}
         added = tokenizer.add_special_tokens(add_token)
@@ -97,11 +115,11 @@ def run_finetuning(args):
             print("Producing dataset cache. This will take a while.")
             s = time.time()
 
-            df = pd.read_csv(args.train_data).sample(frac=args.data_pct, random_state=args.seed)
+            df = pd.read_csv(args.train_data, lineterminator='\n').sample(frac=args.data_pct, random_state=args.seed)
             text, labels = df[t_columns].values, df[l_columns].values
             train_dataset = process_data(text, labels, tokenizer, msl=args.msl)
 
-            df = pd.read_csv(args.valid_data)
+            df = pd.read_csv(args.valid_data, lineterminator='\n')
             text, labels = df[t_columns].values, df[l_columns].values
             valid_dataset = process_data(text, labels, tokenizer, msl=args.msl)
 
@@ -187,7 +205,7 @@ def run_finetuning(args):
             print("Producing test data cache. This will take a while.")
             s = time.time()
 
-            df = pd.read_csv(args.test_data)
+            df = pd.read_csv(args.test_data, lineterminator='\n')
             text, labels = df[t_columns].values, df[l_columns].values
             test_dataset = process_data(text, labels, tokenizer, msl=args.msl)
 
@@ -212,6 +230,7 @@ def run_finetuning(args):
         model = AutoModelForSequenceClassification.from_config(config)
         _ = model.resize_token_embeddings(len(tokenizer))
         model = model.to(device)
+        print(model.name_or_path)
 
         # Load checkpoing and configure loss function
         print("Loading finetuned checkpoint")
