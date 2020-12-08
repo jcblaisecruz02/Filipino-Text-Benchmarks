@@ -86,23 +86,23 @@ def run_finetuning(args):
     torch.manual_seed(args.seed)
     device = torch.device('cuda' if torch.cuda.is_available() and not args.no_cuda else 'cpu')
 
-    # Configure tokenizer
-    tokenizer = AutoTokenizer.from_pretrained(args.pretrained)
-    if args.add_token != '':
-        add_token = {'additional_special_tokens': args.add_token.split(',')}
-        added = tokenizer.add_special_tokens(add_token)
-
-    # Get text columns
-    t_columns = args.text_columns.split(',')
-    num_texts = len(t_columns)
-    if num_texts == 1: t_columns = t_columns[0]
-
-    # Get label columns
-    l_columns = args.label_columns.split(',')
-    num_labels = len(l_columns)
-    if num_labels == 1: l_columns = l_columns[0]
-
     if args.do_train:
+        # Configure tokenizer
+        tokenizer = AutoTokenizer.from_pretrained(args.pretrained)
+        if args.add_token != '':
+            add_token = {'additional_special_tokens': args.add_token.split(',')}
+            added = tokenizer.add_special_tokens(add_token)
+
+        # Get text columns
+        t_columns = args.text_columns.split(',')
+        num_texts = len(t_columns)
+        if num_texts == 1: t_columns = t_columns[0]
+
+        # Get label columns
+        l_columns = args.label_columns.split(',')
+        num_labels = len(l_columns)
+        if num_labels == 1: l_columns = l_columns[0]
+            
         print('\n' + '=' * 50, '\nCONFIGURE FINETUNING SETUP', '\n' + '=' * 50)
         if args.add_token != '': print("Addded {} special tokens:".format(added), args.add_token)
 
@@ -190,11 +190,16 @@ def run_finetuning(args):
             print("Epoch {:3} | Train Loss {:.4f} | Train Acc {:.4f} | Valid Loss {:.4f} | Valid Acc {:.4f}".format(e, train_loss, train_acc, valid_loss, valid_acc))
 
             # Save the model
-            with open(args.checkpoint, 'wb') as f:
-                torch.save(model.state_dict(), f)
+            model.save_pretrained(args.checkpoint)
+            tokenizer.save_pretrained(args.checkpoint)
+            #with open(args.checkpoint, 'wb') as f:
+            #    torch.save(model.state_dict(), f)
 
     if args.do_eval:
         print('\n' + '=' * 50, '\nBEGIN EVALUATION PROPER', '\n' + '=' * 50)
+
+        # Load saved tokenizer
+        tokenizer = AutoTokenizer.from_pretrained(args.checkpoint)
 
         # Produce hash code for test cache
         f_string = args.test_data + str(args.msl) + str(args.seed) + args.pretrained
@@ -226,16 +231,10 @@ def run_finetuning(args):
         test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False)
 
         # Produce the model
-        config = AutoConfig.from_pretrained(args.pretrained, num_labels=2 if num_labels == 1 else num_labels)
-        model = AutoModelForSequenceClassification.from_config(config)
-        _ = model.resize_token_embeddings(len(tokenizer))
-        model = model.to(device)
-        print(model.name_or_path)
-
-        # Load checkpoing and configure loss function
         print("Loading finetuned checkpoint")
-        with open(args.checkpoint, 'rb') as f:
-            model.load_state_dict(torch.load(f))
+        model = AutoModelForSequenceClassification.from_pretrained(args.checkpoint)
+        model = model.to(device)
+
         criterion = torch.nn.CrossEntropyLoss() if num_labels == 1 else torch.nn.BCEWithLogitsLoss()
 
         # Testing proper
