@@ -3,10 +3,10 @@ This repository contains open-source benchmark datasets and pretrained transform
 
 <img src="assets/banner.png" width="70%">
 
-Resources and code released in this repository come from the following papers, with more to be added soon:
+Resources and code released in this repository come from the following papers, with more to be added as they are released:
 1. Investigating the True Performance of Transformers in Low-Resource Languages: A Case Study in Automatic Corpus Creation [(Cruz et al., 2020)](https://arxiv.org/abs/2010.11574) 
-1. Establishing Baselines for Text Classification in Low-Resource Languages [(Cruz & Cheng, 2020)](https://arxiv.org/abs/2005.02068)
-2. Evaluating Language Model Finetuning Techniques for Low-resource Languages [(Cruz & Cheng, 2019)](https://arxiv.org/abs/1907.00409)
+2. Establishing Baselines for Text Classification in Low-Resource Languages [(Cruz & Cheng, 2020)](https://arxiv.org/abs/2005.02068)
+3. Evaluating Language Model Finetuning Techniques for Low-resource Languages [(Cruz & Cheng, 2019)](https://arxiv.org/abs/1907.00409)
 
 *This repository is a continuous work in progress!*
 
@@ -28,9 +28,10 @@ Resources and code released in this repository come from the following papers, w
 
 # Requirements
 * PyTorch v.1.x
-* [HuggingFace Transformers v.3.0.0](https://huggingface.co/transformers/index.html) (Note: Higher versions not thoroughly tested.)
+* [HuggingFace Transformers v.4.0.0](https://huggingface.co/transformers/index.html)
 * [Weight and Biases](https://www.wandb.com/) (Used for logging and hyperparameter search. Optional.)
-* NVIDIA GPU (all experiments were done on Tesla P100 GPUs)
+* [pytorch-lamb](https://github.com/cybertronai/pytorch-lamb)(Optional) for using LAMB during finetuning.
+* NVIDIA GPU (experiments are ran using P100 and V100 GPUs)
 
 # Reproducing Results
 First, download the data and put it in the cloned repository:
@@ -39,12 +40,12 @@ First, download the data and put it in the cloned repository:
 mkdir Filipino-Text-Benchmarks/data
 
 # Hatespeech Dataset
-wget https://s3.us-east-2.amazonaws.com/blaisecruz.com/datasets/hatenonhate/hatespeech_processed.zip
-unzip hatespeech_processed.zip -d Filipino-Text-Benchmarks/data && rm hatespeech_processed.zip
+wget https://s3.us-east-2.amazonaws.com/blaisecruz.com/datasets/hatenonhate/hatespeech_raw.zip
+unzip hatespeech_raw.zip -d Filipino-Text-Benchmarks/data && rm hatespeech_raw.zip
 
 # Dengue Dataset
-wget https://s3.us-east-2.amazonaws.com/blaisecruz.com/datasets/dengue/dengue_processed.zip
-unzip dengue_processed.zip -d Filipino-Text-Benchmarks/data && rm dengue_processed.zip
+wget https://s3.us-east-2.amazonaws.com/blaisecruz.com/datasets/dengue/dengue_raw.zip
+unzip dengue_raw.zip -d Filipino-Text-Benchmarks/data && rm dengue_raw.zip
 
 # NewsPH-NLI Dataset
 wget https://s3.us-east-2.amazonaws.com/blaisecruz.com/datasets/newsph/newsph-nli.zip
@@ -64,7 +65,7 @@ python Filipino-Text-Benchmarks/train.py \
     --valid_data ${DATA_DIR}/valid.csv \
     --test_data ${DATA_DIR}/test.csv \
     --data_pct 1.0 \
-    --checkpoint model.pt \
+    --checkpoint finetuned_model \
     --do_train true \
     --do_eval true \
     --msl 128 \
@@ -81,11 +82,13 @@ python Filipino-Text-Benchmarks/train.py \
 
 This should give you the following results: 
 ```
-Valid Loss 0.4980
-Valid Acc 0.7655
-Test Loss 0.5243
-Test Accuracy 0.7467
+Valid Loss 0.5272
+Valid Acc 0.7568
+Test Loss 0.3366
+Test Accuracy 0.8649
 ```
+
+The script will also output checkpoints of the finetuned model at the end of every epoch. These checkpoints can directly be used in a HuggingFace Transformer `pipeline` or can be loaded via the Transformers package for testing.
 
 To perform multiclass classification, specify the label column names with the ```--label_column``` option. Here's an example finetuning a Tagalog ELECTRA model on the Dengue dataset:
 
@@ -99,7 +102,7 @@ python Filipino-Text-Benchmarks/train.py \
     --test_data ${DATA_DIR}/test.csv \
     --label_columns absent,dengue,health,mosquito,sick \
     --data_pct 1.0 \
-    --checkpoint model.pt \
+    --checkpoint finetuned_model \
     --do_train true \
     --do_eval true \
     --msl 128 \
@@ -116,10 +119,10 @@ python Filipino-Text-Benchmarks/train.py \
 
 This should give you the following results: 
 ```
-Valid Loss 0.1574
-Valid Acc 0.9462
-Test Loss 0.1692
-Test Accuracy 0.9341
+Valid Loss 0.1586
+Valid Acc 0.9414
+Test Loss 0.1662
+Test Accuracy 0.9375
 ```
 
 For more information, run ```train.py --help``` for details on each command line argument.
@@ -138,7 +141,7 @@ python Filipino-Text-Benchmarks/train.py \
     --test_data ${DATA_DIR}/test.csv \
     --text_columns s1,s2 \
     --data_pct 1.0 \
-    --checkpoint model.pt \
+    --checkpoint finetuned_model \
     --do_train true \
     --do_eval true \
     --msl 128 \
@@ -236,11 +239,11 @@ from transformers import TFAutoModel, AutoModel, AutoTokenizer
 
 # TensorFlow
 model = TFAutoModel.from_pretrained('jcblaise/electra-tagalog-small-cased-generator', from_pt=True)
-tokenizer = AutoTokenizer.from_pretrained('jcblaise/electra-tagalog-small-cased-generator', do_lower_case=False)
+tokenizer = AutoTokenizer.from_pretrained('jcblaise/electra-tagalog-small-cased-generator')
 
 # PyTorch
 model = AutoModel.from_pretrained('jcblaise/electra-tagalog-small-cased-generator')
-tokenizer = AutoTokenizer.from_pretrained('jcblaise/electra-tagalog-small-cased-generator', do_lower_case=False)
+tokenizer = AutoTokenizer.from_pretrained('jcblaise/electra-tagalog-small-cased-generator')
 ```
 
 # Pretrained BERT Models
@@ -259,11 +262,11 @@ from transformers import TFAutoModel, AutoModel, AutoTokenizer
 
 # TensorFlow
 model = TFAutoModel.from_pretrained('jcblaise/bert-tagalog-base-cased', from_pt=True)
-tokenizer = AutoTokenizer.from_pretrained('jcblaise/bert-tagalog-base-cased', do_lower_case=False)
+tokenizer = AutoTokenizer.from_pretrained('jcblaise/bert-tagalog-base-cased')
 
 # PyTorch
 model = AutoModel.from_pretrained('jcblaise/bert-tagalog-base-cased')
-tokenizer = AutoTokenizer.from_pretrained('jcblaise/bert-tagalog-base-cased', do_lower_case=False)
+tokenizer = AutoTokenizer.from_pretrained('jcblaise/bert-tagalog-base-cased')
 ```
 
 # Other Pretrained Models
