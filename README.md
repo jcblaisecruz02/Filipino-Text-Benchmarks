@@ -18,7 +18,7 @@ Resources and code released in this repository come from the following papers, w
     * [Sentence-Pair Classification Tasks](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks#sentence-pair-classification-tasks)
     * [Logging Results](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks#logging-results)
 * [Hyperparameter Search](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks#hyperparameter-search)
-* [Demos and Finetuned Models](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks#demos-and-finetuned-models)
+* [Demos](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks#demos)
 * [Released Datasets](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks#datasets)
 * [Pretrained ELECTRA Models](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks#pretrained-electra-models)
 * [Pretrained BERT Models](https://github.com/jcblaisecruz02/Filipino-Text-Benchmarks#pretrained-bert-models)
@@ -234,6 +234,25 @@ pred = out.argmax(1).item() # Outputs "1" which means "contradiction"
 
 ## Using HuggingFace Pipelines
 You can directly use the BERT and ELECTRA models in pipelines. Here's an example for mask filling:
+
+```python
+from transformers import pipeline
+
+pipe = pipeline('fill-mask', model='jcblaise/electra-tagalog-base-cased-generator')
+s = "Ito ang Pilipinas, ang aking [MASK] Hinirang"
+pipe(s)
+
+# It will output the following prediction:
+#
+# [{'score': 0.9990490078926086,
+#   'sequence': '[CLS] Ito ang Pilipinas, ang aking Lupang Hinirang [SEP]',
+#   'token': 21327,
+#   'token_str': 'Lupang'},
+# ...
+
+```
+
+Here's the same example but without using pipelines:
 
 ```python
 from transformers import AutoTokenizer, AutoModelForMaskedLM
