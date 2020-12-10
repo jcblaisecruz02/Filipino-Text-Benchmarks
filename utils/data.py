@@ -31,7 +31,7 @@ def process_data(text, labels, tokenizer, msl=128):
     targets = process_labels(labels)
 
     # Convert to tensordataset
-    if 'distilbert' in tokenizer.name_or_path:
+    if 'distilbert' in str(type(tokenizer)) or 'roberta' in str(type(tokenizer)):
         dataset = torch.utils.data.TensorDataset(torch.tensor(encodings.input_ids),
                                                 torch.tensor(encodings.attention_mask), 
                                                 targets)
