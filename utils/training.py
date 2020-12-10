@@ -26,7 +26,7 @@ def train(model, criterion, optimizer, train_loader, scheduler=None, accumulatio
     train_loss, train_acc = 0, 0
     for i, batch in enumerate(tqdm(train_loader)):
         
-        if 'distilbert' in str(type(model)):
+        if 'distilbert' in str(type(model)) or 'roberta' in str(type(model)):
             x, attention_mask, y = batch
             x, y = x.to(device), y.to(device)
             attention_mask = attention_mask.to(device)
@@ -58,13 +58,14 @@ def evaluate(model, criterion, valid_loader, device=None):
     model.eval()
     valid_loss, valid_acc = 0, 0
     for batch in tqdm(valid_loader):
-        if 'distilbert' in str(type(model)):
+        if 'distilbert' in str(type(model)) or 'roberta' in str(type(model)):
             x, attention_mask, y = batch
             x, y = x.to(device), y.to(device)
             attention_mask = attention_mask.to(device)
             with torch.no_grad():
                 out = model(input_ids=x, attention_mask=attention_mask)[0]
         else:
+            print(str(type(model)))
             x, token_type_ids, attention_mask, y = batch
             x, y = x.to(device), y.to(device)
             token_type_ids, attention_mask = token_type_ids.to(device), attention_mask.to(device)
@@ -86,22 +87,22 @@ def run_finetuning(args):
     torch.manual_seed(args.seed)
     device = torch.device('cuda' if torch.cuda.is_available() and not args.no_cuda else 'cpu')
 
+    # Get text columns
+    t_columns = args.text_columns.split(',')
+    num_texts = len(t_columns)
+    if num_texts == 1: t_columns = t_columns[0]
+
+    # Get label columns
+    l_columns = args.label_columns.split(',')
+    num_labels = len(l_columns)
+    if num_labels == 1: l_columns = l_columns[0]
+
     if args.do_train:
         # Configure tokenizer
         tokenizer = AutoTokenizer.from_pretrained(args.pretrained)
         if args.add_token != '':
             add_token = {'additional_special_tokens': args.add_token.split(',')}
             added = tokenizer.add_special_tokens(add_token)
-
-        # Get text columns
-        t_columns = args.text_columns.split(',')
-        num_texts = len(t_columns)
-        if num_texts == 1: t_columns = t_columns[0]
-
-        # Get label columns
-        l_columns = args.label_columns.split(',')
-        num_labels = len(l_columns)
-        if num_labels == 1: l_columns = l_columns[0]
             
         print('\n' + '=' * 50, '\nCONFIGURE FINETUNING SETUP', '\n' + '=' * 50)
         if args.add_token != '': print("Addded {} special tokens:".format(added), args.add_token)
