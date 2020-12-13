@@ -37,6 +37,8 @@ def main():
     parser.add_argument('--seed', type=int, default=42, help='Random seed.')
     parser.add_argument('--no_cuda', type=str2bool, default='false', help='Do not use GPU.')
     parser.add_argument('--dont_save', type=str2bool, default='false', help='Do not save finetuned model.')
+    parser.add_argument('--fp16', type=str2bool, default='false', help='Use FP16 Training via APEX.')
+    parser.add_argument('--opt_level', type=str, default='O1', help='Opt level for mixed precision training.')
     
     # Logging
     parser.add_argument('--use_wandb', type=str2bool, default='false', help='Use wandb logging.')

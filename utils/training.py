@@ -13,6 +13,12 @@ import hashlib
 from transformers import AutoTokenizer, AutoConfig, AutoModelForSequenceClassification
 from transformers import AdamW, get_linear_schedule_with_warmup
 
+try:
+    from apex import amp 
+    APEX_AVAILABLE = True
+except ModuleNotFoundError:
+    APEX_AVAILABLE = False
+
 def accuracy(out, y): 
     # Columnwise mean accurarcy for multilabel classification
     if len(y.shape) > 1:
@@ -21,7 +27,7 @@ def accuracy(out, y):
     return (out.argmax(1) == y).sum().item() / len(y)
 
 # Train one epoch
-def train(model, criterion, optimizer, train_loader, scheduler=None, accumulation=1, device=None):
+def train(model, criterion, optimizer, train_loader, scheduler=None, accumulation=1, device=None, fp16=False):
     model.train()
     train_loss, train_acc = 0, 0
     for i, batch in enumerate(tqdm(train_loader)):
@@ -37,9 +43,13 @@ def train(model, criterion, optimizer, train_loader, scheduler=None, accumulatio
             token_type_ids, attention_mask = token_type_ids.to(device), attention_mask.to(device)
             out = model(input_ids=x, token_type_ids=token_type_ids, attention_mask=attention_mask)[0]
 
-
         loss = criterion(out, y)
-        loss.backward() 
+
+        if fp16 and APEX_AVAILABLE:
+            with amp.scale_loss(loss, optimizer) as scaled_loss:
+                scaled_loss.backward()
+        else:
+            loss.backward() 
 
         if (i + 1) % accumulation == 0: 
             optimizer.step()
@@ -65,7 +75,6 @@ def evaluate(model, criterion, valid_loader, device=None):
             with torch.no_grad():
                 out = model(input_ids=x, attention_mask=attention_mask)[0]
         else:
-            print(str(type(model)))
             x, token_type_ids, attention_mask, y = batch
             x, y = x.to(device), y.to(device)
             token_type_ids, attention_mask = token_type_ids.to(device), attention_mask.to(device)
@@ -96,6 +105,9 @@ def run_finetuning(args):
     l_columns = args.label_columns.split(',')
     num_labels = len(l_columns)
     if num_labels == 1: l_columns = l_columns[0]
+
+    if args.fp16 and not APEX_AVAILABLE:
+        print("FP16 toggle is on but Apex is not available. Using FP32 training.")
 
     if args.do_train:
         # Configure tokenizer
@@ -173,6 +185,11 @@ def run_finetuning(args):
                              weight_decay=args.weight_decay,
                              betas=(args.adam_b1, args.adam_b2))
 
+        # Configure FP16
+        if args.fp16 and APEX_AVAILABLE:
+            print("Using FP16 training.")
+            model, optimizer = amp.initialize(model, optimizer, opt_level=args.opt_level)
+
         # Configure scheduler
         if args.use_scheduler:
             steps = len(train_loader) * args.epochs // args.accumulation
@@ -186,7 +203,7 @@ def run_finetuning(args):
         print('\n' + '=' * 50, '\nTRAINING', '\n' + '=' * 50)
         print("Training batches: {} | Validation batches: {}".format(len(train_loader), len(valid_loader)))
         for e in range(1, args.epochs + 1):
-            train_loss, train_acc = train(model, criterion, optimizer, train_loader, scheduler=scheduler, accumulation=args.accumulation, device=device)
+            train_loss, train_acc = train(model, criterion, optimizer, train_loader, scheduler=scheduler, accumulation=args.accumulation, device=device, fp16=args.fp16)
             valid_loss, valid_acc = evaluate(model, criterion, valid_loader, device=device)
             print("Epoch {:3} | Train Loss {:.4f} | Train Acc {:.4f} | Valid Loss {:.4f} | Valid Acc {:.4f}".format(e, train_loss, train_acc, valid_loss, valid_acc))
 
